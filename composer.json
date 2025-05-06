@@ -1,0 +1,27 @@
+{
+    "name": "finnwiel/shazzoo-media",
+    "description": "A Laravel + Filament plugin extension for filament-curator. That adds conversions and new views.",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+      "psr-4": {
+        "FinnWiel\\ShazzooMedia\\": "src/"
+      }
+    },
+    "require": {
+      "php": "^8.1",
+      "filament/filament": "^3.0",
+      "awcodes/filament-curator": "^3.0",
+      "spatie/laravel-package-tools": "^1.0"
+    },
+    "extra": {
+      "laravel": {
+        "providers": [
+          "FinnWiel\\ShazzooMedia\\ShazzooMediaServiceProvider"
+        ]
+      }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+  }
+  

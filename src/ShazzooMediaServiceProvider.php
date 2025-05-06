@@ -73,7 +73,7 @@ class ShazzooMediaServiceProvider extends PackageServiceProvider
         View::prependNamespace('curator',__DIR__ . '/../resources/views/vendor/curator');
 
         FilamentAsset::register([
-            Css::make('curator', base_path('vendor/awcodes/curator/resources/dist/curator.css'))->loadedOnRequest(false),
-        ], 'your-vendor/your-plugin');
+            Css::make('curator', base_path('vendor/awcodes/filament-curator/resources/dist/curator.css'))->loadedOnRequest(false),
+        ], 'finnwiel/shazzoo-media');
     }
 }

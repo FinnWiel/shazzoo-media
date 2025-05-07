@@ -1,17 +1,30 @@
 # Shazzoo Media
 
 [![License](https://img.shields.io/github/license/finnwiel/shazzoo-media.svg)](LICENSE)
+[![Packagist Version](https://img.shields.io/packagist/v/finnwiel/shazzoo-media.svg)](https://packagist.org/packages/finnwiel/shazzoo-media)
+![Laravel](https://img.shields.io/badge/laravel-12.x-red)
+![Filament](https://img.shields.io/badge/filament-3.x-yellow)
+![PHP](https://img.shields.io/badge/php-^8.1-blue)
 
 A Laravel + Filament plugin that extends [Filament Curator](https://github.com/awcodes/filament-curator) with custom media conversion logic and a customized media model.
 
 ---
 
+- [Features](#-features)
+- [Installation](#-installation)
+- [Usage](#-usage)
+  - [Global Settings](#global-settings)
+  - [Filament Panels](#filament-panels)
+  - [Picker Field](#picker-field)
+  - [Conversions](#conversions)
+
+---
+
 ## 🚀 Features
 
-- 🖼 Custom media model (`MediaExtended`) with JSON-stored conversions
-- 🧩 Fully compatible with Filament Curator
-- 🎨 Custom `CustomCuratorPicker` component with added conversion logic
-- 📁 View overrides for Curator panel customization
+- 🖼 Custom media model (`MediaExtended`) with JSON-stored conversions.
+- 🎨 Custom `CustomCuratorPicker` component with added conversion logic.
+- 📁 View overrides for Curator panel customization.
 
 ---
 
@@ -19,7 +32,7 @@ A Laravel + Filament plugin that extends [Filament Curator](https://github.com/a
 You can install the package via composer then run the installation command:
 
 ```bash
-composer require finnwiel/shazzoo-media`
+composer require finnwiel/shazzoo-media
 ```
 ```bash
 php artisan shazzoo_media:install
@@ -33,11 +46,11 @@ npm install -D cropperjs
 
 
 Import the plugin's stylesheet and cropperjs' stylesheet into your theme's css file.
-```bash
+```php
 @import '<path-to-vendor>/awcodes/filament-curator/resources/css/plugin.css';
 ```
 Add the plugin's views to your ```tailwind.config.js``` file.
-```bash
+```php
 content: [
         './vendor/awcodes/filament-curator/resources/**/*.blade.php',
         './vendor/finnwiel/shazzoo-media/resources/views/vendor/curator/components/**/*.blade.php',
@@ -81,9 +94,22 @@ CustomCuratorPicker::make('featured_image_id')
                     ->conversions(['thumbnail']),
 ```
 
+To generate actually set the conversions in the database you need to add a trait to the create and edit classes of your resource.
+
+```php
+use FinnWiel\ShazzooMedia\Traits\HandlesConversions;
+
+class CreatePost extends CreateRecord
+{
+    use HandlesConversions;
+
+    protected static string $resource = PostResource::class;
+}
+```
+
 ### Conversions
 
-Conversions are set in ```config/shazzoo-media.php``` in the conversions array. To add or remove conversions change the array with the same sturcture.
+Conversions are set in ```config/shazzoo-media.php``` in the conversions array. To add or remove conversions change the array with the same structure.
 
 ```php
 'conversions' => [
@@ -91,6 +117,18 @@ Conversions are set in ```config/shazzoo-media.php``` in the conversions array. 
     'thumbnail' => ['width' => 200,'height' => 200],
     'medium' => ['width' => 400,'height' => 400],
     'large' => ['width' => 600,'height' => 600],
+],
+```
+
+So adding a new conversion called small would look like this:
+
+```php
+'conversions' => [
+    'profile' => ['width' => 80,'height' => 80],
+    'thumbnail' => ['width' => 200,'height' => 200],
+    'medium' => ['width' => 400,'height' => 400],
+    'large' => ['width' => 600,'height' => 600],
+    'small' => ['width' => 100,'height' => 100],
 ],
 ```
 

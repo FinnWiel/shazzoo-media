@@ -113,11 +113,11 @@ The policy uses these roles:
 | **Viewer**      | `View`                                                     |
 | **Editor**      | `View` `Edit`                                              |
 | **Admin**       | `View` `Edit` `Upload`                                     |
-| **Super Admin** | All actions for all `tenant_id`'s
+| **Super Admin** | All actions for all `tenant_id`'s                          |
  
 The Shazzoo Media plugin also uses a tenant_id any media uploaded by a user will automatically have the same tenant_id as the user. This way only users with the same tenancy can see the media. Other roles will still apply.
 
-If you do not want to functionality simply set the `enable_tenant_scope` to `false` in the config file. This will make sure all tenancy checks are skipped.
+If you do not want to functionality simply set the `enable_tenant_scope` to `false` in the config file. This will make sure all tenancy checks are skipped. The tenant_id for media items will still be set to the tenant_id of the user that uploaded. This makes it possible to toggle this option later.
 ___
 ### Conversions
 

@@ -29,12 +29,6 @@ class MediaExtended extends CuratorMedia
 
     protected static function booted()
     {
-        static::creating(function ($media) {
-            if (Auth::check() && ! $media->tenant_id) {
-                $media->tenant_id = Auth::user()->tenant_id;
-            }
-        });
-
         static::addGlobalScope('tenant', function (Builder $builder) {
             if (!config('shazzoo_media.enable_tenant_scope', true)) {
                 return;
@@ -54,6 +48,15 @@ class MediaExtended extends CuratorMedia
             }
         });
         
+    }
+
+    public function save(array $options = [])
+    {
+        if (Auth::check() && ! $this->tenant_id) {
+            $this->tenant_id = Auth::user()->tenant_id;
+        }
+
+        return parent::save($options);
     }
 
     public function __get($key)

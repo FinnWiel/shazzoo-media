@@ -150,15 +150,6 @@ class MediaResource extends BaseMediaResource
                                 !optional(auth()->guard()->user())->can('delete', $record),
                             function ($result) use ($record) {
                                 $user = auth()->guard()->user();
-                                Log::info('record class: ' . get_class($record));
-                                Log::info('[ShazzooMedia Visibility Check]', [
-                                    'media_policies_enabled' => config('shazzoo_media.media_policies'),
-                                    'user_authenticated' => auth()->guard()->check(),
-                                    'user' => optional($user)?->id,
-                                    'can_update' => optional($user)?->can('update', $record),
-                                    'can_delete' => optional($user)?->can('delete', $record),
-                                    'visible' => $result,
-                                ]);
                             }
                         )
                     ),

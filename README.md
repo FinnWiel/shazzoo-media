@@ -10,7 +10,6 @@ A Laravel + Filament plugin that extends [Filament Curator](https://github.com/a
 
 ---
 
-- [Features](#-features)
 - [Installation](#-installation)
 - [Usage](#-usage)
   - [Global Settings](#global-settings)
@@ -20,25 +19,20 @@ A Laravel + Filament plugin that extends [Filament Curator](https://github.com/a
 
 ---
 
-## 🚀 Features
-
-- 🖼 Custom media model (`MediaExtended`) with JSON-stored conversions.
-- 🎨 Custom `CustomCuratorPicker` component with added conversion logic.
-- 📁 View overrides for Curator panel customization.
-
----
-
-## 📦 Installation
+##  Installation
 You can install the package via composer then run the installation command:
 
 ```bash
 composer require finnwiel/shazzoo-media
 ```
+
+If you installed Curator before Shazzoo Media, you’ll need to remove Curator’s media table migration manually before running the install command.
+
 ```bash
 php artisan shazzoo_media:install
 ```
 
-> **Note:** This package will install curator for you but you will have to do some of the setup. Like installing CropperJS and using a custom filament theme for styling. If you have not set up a custom theme and are using a Panel follow the instructions in the Filament Docs first.
+ > **Note:** This package will install curator for you but you will have to do some of the setup. Like installing CropperJS and using a custom filament theme for styling. If you have not set up a custom theme and are using a Panel follow the instructions in the Filament Docs first.
 
 ```bash
 npm install -D cropperjs
@@ -57,8 +51,9 @@ content: [
 ]
 ```
 
-## 📦 Usage
+##  Usage
 ### Global settings
+
 The plugins settings can be managed through the config file
 
 ```bash
@@ -66,7 +61,7 @@ php artisan vendor:publish --tag=shazzoo_media-config
 ```
 
 > **Note:** This package will also change some of curators settings, you can still manage curators setting but they may not work with Shazzoo Media
-
+___
 ### Filament Panels
 If you are using Filament Panels you will need to add the Plugin to your Panel's configuration. This will register the plugin's resources with the Panel. All methods are optional, and will be read from the config file if not provided.
 
@@ -83,7 +78,7 @@ public function panel(Panel $panel): Panel
             ])
 }
 ```
-
+___
 
 ### Picker field
 
@@ -106,10 +101,27 @@ class CreatePost extends CreateRecord
     protected static string $resource = PostResource::class;
 }
 ```
+___
+### Policies
+The package uses a policy for actions relating to the media library. This policy is used by default, but can be disabled by setting `media_policies` to `false` in the config file. If you do want to keep using the media policy you need to add the `use HasRoleCheck` trait to the User model. 
 
+
+The policy uses these roles:
+
+| Role | Permissions |
+|--------------|-------------------------------------------------------------------------------------------|
+| **Viewer**      | `View`                                                     |
+| **Editor**      | `View` `Edit`                                              |
+| **Admin**       | `View` `Edit` `Upload`                                     |
+| **Super Admin** | All actions for all `tenant_id`'s
+ 
+The Shazzoo Media plugin also uses a tenant_id any media uploaded by a user will automatically have the same tenant_id as the user. This way only users with the same tenancy can see the media. Other roles will still apply.
+
+If you do not want to functionality simply set the `enable_tenant_scope` to `false` in the config file. This will make sure all tenancy checks are skipped.
+___
 ### Conversions
 
-Conversions are set in ```config/shazzoo-media.php``` in the conversions array. To add or remove conversions change the array with the same structure.
+Conversions are set in `config/shazzoo_media.php` in the conversions array. To add or remove conversions change the array with the same structure.
 
 ```php
 'conversions' => [

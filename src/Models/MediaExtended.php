@@ -36,19 +36,24 @@ class MediaExtended extends CuratorMedia
         });
 
         static::addGlobalScope('tenant', function (Builder $builder) {
+            if (!config('shazzoo_media.enable_tenant_scope', true)) {
+                return;
+            }
+        
             if (Auth::check()) {
                 $user = Auth::user();
-
+        
                 if ($user->hasRole('superadmin')) {
                     return;
                 }
-
+        
                 $builder->where(function ($query) use ($user) {
                     $query->where('tenant_id', $user->tenant_id)
-                        ->orWhereNull('tenant_id'); // shared media
+                          ->orWhereNull('tenant_id'); // shared media
                 });
             }
         });
+        
     }
 
     public function __get($key)

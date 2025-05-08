@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use stdClass;
 
-class CustomMediaObserver
+class ShazzooMediaObserver
 {
     /**
      * Handle the Media "creating" event.

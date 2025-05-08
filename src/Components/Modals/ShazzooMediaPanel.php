@@ -16,10 +16,10 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
-use FinnWiel\ShazzooMedia\Components\Forms\CustomUploader;
+use FinnWiel\ShazzooMedia\Components\Forms\ShazzooMediaUploader;
 use Livewire\Attributes\On;
 
-class CustomCuratorPanel extends BaseCuratorPanel
+class ShazzooMediaPanel extends BaseCuratorPanel
 {
 
     public array $files_to_add = [];
@@ -54,7 +54,7 @@ class CustomCuratorPanel extends BaseCuratorPanel
 
         return $form
             ->schema([
-                CustomUploader::make('files_to_add')
+                ShazzooMediaUploader::make('files_to_add')
                     ->visible(function () {
                         return count($this->selected) !== 1 &&
                             (

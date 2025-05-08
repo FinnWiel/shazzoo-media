@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
 use Filament\Support\Colors\Color;
 
-class CustomCuratorPicker extends CuratorPicker
+class ShazzooMediaPicker extends CuratorPicker
 {
     protected static array $conversionRegistry = [];
     public bool $keepOriginalSize = false;

@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Log;
 use Intervention\Image\Facades\Image;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
-class CustomUploader extends Uploader
+class ShazzooMediaUploader extends Uploader
 {
     protected bool $keepOriginalSize = false;
 

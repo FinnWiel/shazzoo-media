@@ -7,7 +7,7 @@ use League\Glide\Responses\SymfonyResponseFactory;
 use League\Glide\Server;
 use League\Glide\ServerFactory as GlideServerFactory;
 
-class CustomServerFactory implements ServerFactory
+class ShazzooMediaServerFactory implements ServerFactory
 {
     public function getFactory(): GlideServerFactory | Server
     {

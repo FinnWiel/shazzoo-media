@@ -7,7 +7,7 @@ trait HandlesConversions
     protected function mutateFormDataBeforeSave(array $data): array
     {
         //Save the conversions to the media
-        \FinnWiel\ShazzooMedia\Components\Forms\CustomCuratorPicker::saveConversionsToMedia($data);
+        \FinnWiel\ShazzooMedia\Components\Forms\ShazzooMediaPicker::saveConversionsToMedia($data);
 
         return $data;
     }
@@ -15,7 +15,7 @@ trait HandlesConversions
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         //Save the conversions to the media
-        \FinnWiel\ShazzooMedia\Components\Forms\CustomCuratorPicker::saveConversionsToMedia($data);
+        \FinnWiel\ShazzooMedia\Components\Forms\ShazzooMediaPicker::saveConversionsToMedia($data);
 
         return $data;
     }

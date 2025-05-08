@@ -12,7 +12,7 @@ use FinnWiel\ShazzooMedia\Commands\ListConversionDefinitions;
 use FinnWiel\ShazzooMedia\Commands\RegenerateConversionImages;
 use FinnWiel\ShazzooMedia\Commands\SetConversionDatabaseRecords;
 use FinnWiel\ShazzooMedia\Models\MediaExtended;
-use FinnWiel\ShazzooMedia\Observers\CustomMediaObserver;
+use FinnWiel\ShazzooMedia\Observers\ShazzooMediaObserver;
 use FinnWiel\ShazzooMedia\Policies\MediaPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
@@ -55,7 +55,7 @@ class ShazzooMediaServiceProvider extends PackageServiceProvider
         // Set all changes for curator conifig to work with shazzoo media
         config()->set('curator.resources.resource', \FinnWiel\ShazzooMedia\Resources\MediaResource::class); // Resource
         config()->set('curator.model', \FinnWiel\ShazzooMedia\Models\MediaExtended::class); // Model
-        config()->set('curator.glide.server', \FinnWiel\ShazzooMedia\Glide\CustomServerFactory::class); 
+        config()->set('curator.glide.server', \FinnWiel\ShazzooMedia\Glide\ShazzooMediaServerFactory::class); 
         config()->set('curator.glide.route_path', 'storage'); // Glide server
         config()->set('curator.tabs.display_curation', false); // Display curation tab
         config()->set('curator.tabs.display_upload_new', false); // Display upload new tab
@@ -68,7 +68,7 @@ class ShazzooMediaServiceProvider extends PackageServiceProvider
 
         // Register the Models observer
         MediaExtended::flushEventListeners();
-        MediaExtended::observe(CustomMediaObserver::class);
+        MediaExtended::observe(ShazzooMediaObserver::class);
 
         // Load the views from the package instead of from curator
         View::prependNamespace('curator',__DIR__ . '/../resources/views/vendor/curator');

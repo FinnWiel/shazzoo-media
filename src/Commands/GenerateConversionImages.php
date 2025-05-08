@@ -2,7 +2,7 @@
 
 namespace FinnWiel\ShazzooMedia\Commands;
 
-use FinnWiel\ShazzooMedia\Glide\CustomServerFactory;
+use FinnWiel\ShazzooMedia\Glide\ShazzooMediaServerFactory;
 use FinnWiel\ShazzooMedia\Models\MediaExtended;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
@@ -28,7 +28,7 @@ class GenerateConversionImages extends Command
     public function __construct()
     {
         parent::__construct();
-        $this->server = app(CustomServerFactory::class)->getFactory();
+        $this->server = app(ShazzooMediaServerFactory::class)->getFactory();
     }
 
     /**

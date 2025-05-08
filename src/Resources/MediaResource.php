@@ -16,7 +16,7 @@ use Filament\Forms\Get;
 use Filament\Forms\Set;
 use Filament\Tables;
 use Filament\Tables\Table;
-use FinnWiel\ShazzooMedia\Components\Forms\CustomUploader;
+use FinnWiel\ShazzooMedia\Components\Forms\ShazzooMediaUploader;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -37,7 +37,7 @@ class MediaResource extends BaseMediaResource
                                 static::getUploaderField()
                                     ->required()
                                     ->live()
-                                    ->getUploadedFileNameForStorageUsing(function (Get $get, CustomUploader $component, $file) {
+                                    ->getUploadedFileNameForStorageUsing(function (Get $get, ShazzooMediaUploader $component, $file) {
                                         $name = $get('name');
 
                                         return ! empty($name) ? Str::slug($name) : $component->getSuggestedFileName($file);
@@ -174,9 +174,9 @@ class MediaResource extends BaseMediaResource
             ->recordUrl(false);
     }
 
-    public static function getUploaderField(): CustomUploader
+    public static function getUploaderField(): ShazzooMediaUploader
     {
-        return CustomUploader::make('file')
+        return ShazzooMediaUploader::make('file')
             ->acceptedFileTypes(config('curator.accepted_file_types'))
             ->directory(config('curator.directory'))
             ->disk(config('curator.disk'))

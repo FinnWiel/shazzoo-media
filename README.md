@@ -85,7 +85,7 @@ ___
 Shazzoo Media adds a conversions method to the picker field, this method accepts an array. The conversions will subsequently be set in the database for each array item. Shazzoo Media will also create the conversion image.
 
 ```php
-CustomCuratorPicker::make('featured_image_id')
+ShazzooMediaCuratorPicker::make('featured_image_id')
                     ->conversions(['thumbnail']),
 ```
 

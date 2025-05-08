@@ -4,6 +4,9 @@ namespace FinnWiel\ShazzooMedia\Resources;
 
 use Awcodes\Curator\Components\Forms\CuratorEditor;
 use Awcodes\Curator\Resources\MediaResource as BaseMediaResource;
+use Awcodes\Curator\Resources\MediaResource\CreateMedia;
+use Awcodes\Curator\Resources\MediaResource\EditMedia;
+use Awcodes\Curator\Resources\MediaResource\ListMedia;
 use Filament\Forms\Components\Group;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Repeater;
@@ -198,5 +201,14 @@ class MediaResource extends BaseMediaResource
                 '3:2',
                 '1:1',
             ]);
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => ListMedia::route('/'),
+            'create' => CreateMedia::route('/create'),
+            'edit' => EditMedia::route('/{record}/edit'),
+        ];
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Awcodes\Curator\Resources\MediaResource;
+namespace FinnWiel\ShazzooMedia\Resources\MediaResource;
 
 use Awcodes\Curator\CuratorPlugin;
 use Exception;

@@ -4,9 +4,6 @@ namespace FinnWiel\ShazzooMedia\Resources;
 
 use Awcodes\Curator\Components\Forms\CuratorEditor;
 use Awcodes\Curator\Resources\MediaResource as BaseMediaResource;
-use Awcodes\Curator\Resources\MediaResource\CreateMedia;
-use Awcodes\Curator\Resources\MediaResource\EditMedia;
-use Awcodes\Curator\Resources\MediaResource\ListMedia;
 use Filament\Forms\Components\Group;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Repeater;
@@ -16,12 +13,13 @@ use Filament\Forms\Components\Tabs\Tab;
 use Filament\Forms\Components\ViewField;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
-use Filament\Forms\Set;
 use Filament\Tables;
 use Filament\Tables\Table;
 use FinnWiel\ShazzooMedia\Components\Forms\ShazzooMediaUploader;
+use FinnWiel\ShazzooMedia\Resources\MediaResource\CreateMedia;
+use FinnWiel\ShazzooMedia\Resources\MediaResource\EditMedia;
+use FinnWiel\ShazzooMedia\Resources\MediaResource\ListMedia;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 use function Awcodes\Curator\is_media_resizable;

@@ -103,7 +103,13 @@ class CreatePost extends CreateRecord
 ```
 ___
 ### Policies
-The package uses a policy for actions relating to the media library. This policy is used by default, but can be disabled by setting `media_policies` to `false` in the config file. If you do want to keep using the media policy you need to add the `use HasRoleCheck` trait to the User model. 
+The package uses a policy for actions relating to the media library. This policy is used by default, but can be disabled by setting `media_policies` to `false` in the config file. 
+
+If you do want to keep using the media policy you need to add the `HasRoleCheck` trait to the User model. 
+
+```php
+use FinnWiel\ShazzooMedia\Traits\HasRoleCheck;
+```
 
 
 The policy uses these roles:

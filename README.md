@@ -73,7 +73,7 @@ public function panel(Panel $panel): Panel
                 \Awcodes\Curator\CuratorPlugin::make()
                     ->label('Media')
                     ->navigationLabel('Media Library')
-                    ->resource(MediaResource::class)
+                    ->resource(MediaResource::class) // use FinnWiel\ShazzooMedia\Resources\MediaResource;
                     ->registerNavigation(true)
                     ->navigationCountBadge(true)   
             ])

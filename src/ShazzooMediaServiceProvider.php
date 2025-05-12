@@ -11,6 +11,7 @@ use FinnWiel\ShazzooMedia\Commands\GenerateConversionImages;
 use FinnWiel\ShazzooMedia\Commands\ListConversionDefinitions;
 use FinnWiel\ShazzooMedia\Commands\RegenerateConversionImages;
 use FinnWiel\ShazzooMedia\Commands\SetConversionDatabaseRecords;
+use FinnWiel\ShazzooMedia\Components\Modals\ShazzooMediaPanel;
 use FinnWiel\ShazzooMedia\Models\MediaExtended;
 use FinnWiel\ShazzooMedia\Observers\ShazzooMediaObserver;
 use FinnWiel\ShazzooMedia\Policies\MediaPolicy;
@@ -65,6 +66,8 @@ class ShazzooMediaServiceProvider extends PackageServiceProvider
         if (config('shazzoo_media.media_policies')) {
             Gate::policy(\FinnWiel\ShazzooMedia\Models\MediaExtended::class, MediaPolicy::class);
         }
+
+        Livewire::component('curator-panel', ShazzooMediaPanel::class);
 
         // Register the Models observer
         MediaExtended::flushEventListeners();

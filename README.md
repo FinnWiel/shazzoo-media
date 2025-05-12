@@ -73,6 +73,7 @@ public function panel(Panel $panel): Panel
                 \Awcodes\Curator\CuratorPlugin::make()
                     ->label('Media')
                     ->navigationLabel('Media Library')
+                    ->resource(MediaResource::class)
                     ->registerNavigation(true)
                     ->navigationCountBadge(true)   
             ])

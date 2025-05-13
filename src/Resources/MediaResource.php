@@ -2,14 +2,10 @@
 
 namespace FinnWiel\ShazzooMedia\Resources;
 
-use Awcodes\Curator\Components\Forms\CuratorEditor;
 use Awcodes\Curator\Resources\MediaResource as BaseMediaResource;
 use Filament\Forms\Components\Group;
 use Filament\Forms\Components\KeyValue;
-use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Section;
-use Filament\Forms\Components\Tabs;
-use Filament\Forms\Components\Tabs\Tab;
 use Filament\Forms\Components\ViewField;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
@@ -43,43 +39,6 @@ class MediaResource extends BaseMediaResource
 
                                         return ! empty($name) ? Str::slug($name) : $component->getSuggestedFileName($file);
                                     }),
-                            ]),
-                        Tabs::make('image')
-                            ->hiddenOn('create')
-                            ->tabs([
-                                Tab::make(trans('curator::forms.sections.preview'))
-                                    ->schema([
-                                        ViewField::make('preview')
-                                            ->view('curator::components.forms.preview')
-                                            ->hiddenLabel()
-                                            ->dehydrated(false)
-                                            ->afterStateHydrated(function ($component, $state, $record) {
-                                                $component->state($record);
-                                            }),
-                                    ]),
-                                Tab::make(trans('curator::forms.sections.curation'))
-                                    ->visible(fn($record) => is_media_resizable($record->type) && config('curator.tabs.display_curation'))
-                                    ->schema([
-                                        Repeater::make('curations')
-                                            ->label(trans('curator::forms.sections.curation'))
-                                            ->hiddenLabel()
-                                            ->reorderable(false)
-                                            ->itemLabel(fn($state): ?string => $state['curation']['key'] ?? null)
-                                            ->collapsible()
-                                            ->schema([
-                                                CuratorEditor::make('curation')
-                                                    ->hiddenLabel()
-                                                    ->buttonLabel(trans('curator::forms.curations.button_label'))
-                                                    ->required()
-                                                    ->lazy(),
-                                            ]),
-                                    ]),
-                                Tab::make(trans('curator::forms.sections.upload_new'))
-                                    ->visible(config('curator.tabs.display_upload_new'))
-                                    ->schema([
-                                        static::getUploaderField()
-                                            ->helperText(trans('curator::forms.sections.upload_new_helper')),
-                                    ]),
                             ]),
                         Section::make(trans('curator::forms.sections.details'))
                             ->schema([
@@ -198,7 +157,8 @@ class MediaResource extends BaseMediaResource
                 '4:3',
                 '3:2',
                 '1:1',
-            ]);
+            ])
+            ->formatStateUsing(fn ($state) => is_array($state) && isset($state['path']) ? $state['path'] : $state);
     }
 
     public static function getPages(): array

@@ -2,6 +2,7 @@
 
 namespace FinnWiel\ShazzooMedia;
 
+use Awcodes\Curator\Models\Media;
 use Filament\Support\Assets\Css;
 use Filament\Support\Facades\FilamentAsset;
 use Livewire\Livewire;
@@ -66,6 +67,8 @@ class ShazzooMediaServiceProvider extends PackageServiceProvider
         if (config('shazzoo_media.media_policies')) {
             Gate::policy(\FinnWiel\ShazzooMedia\Models\MediaExtended::class, MediaPolicy::class);
         }
+
+        $this->app->bind(Media::class, MediaExtended::class);
 
         Livewire::component('curator-panel', ShazzooMediaPanel::class);
 

@@ -6,6 +6,7 @@ use FinnWiel\ShazzooMedia\Models\MediaExtended;
 use Illuminate\View\View;
 use Filament\Forms\Components\View as FormView;
 use Awcodes\Curator\Components\Modals\CuratorPanel as BaseCuratorPanel;
+use Awcodes\Curator\Models\Media;
 use Awcodes\Curator\Resources\MediaResource;
 use Exception;
 use Filament\Forms\Components\Group;
@@ -25,6 +26,14 @@ class ShazzooMediaPanel extends BaseCuratorPanel
     public array $files_to_add = [];
     public bool $keepOriginalSize = false;
 
+    public ?Media $mediaClass = null;
+
+
+    public function __construct()
+    {
+        $this->mediaClass = new \FinnWiel\ShazzooMedia\Models\MediaExtended();
+    }
+
     #[On('open-modal')]
     public function openModal(string $id, array $settings = []): void
     {
@@ -32,7 +41,7 @@ class ShazzooMediaPanel extends BaseCuratorPanel
             return;
         }
         $this->keepOriginalSize = $settings['keepOriginalSize'] ?? false;
-        // dd($this->keepOriginalSize);
+
         parent::openModal($id, $settings);
     }
 
@@ -184,6 +193,83 @@ class ShazzooMediaPanel extends BaseCuratorPanel
                 }
             });
     }
+
+
+    /**
+     * 
+     * @param bool $insertAfter
+     * @return Action
+     */
+    public function addFilesAction(bool $insertAfter = false): Action
+    {
+        return Action::make('addFiles')
+            ->button()
+            ->size('sm')
+            ->color('primary')
+            ->label('Insert image')
+            ->disabled(fn(): bool => count($this->form->getRawState()['files_to_add'] ?? []) === 0)
+            ->visible(fn() => true)
+            ->action(function () use ($insertAfter): void {
+                try {
+                    $media = $this->createMediaFiles($this->form->getState());
+
+                    $this->form->fill();
+                    $this->files = [...$media, ...$this->files];
+
+                    if ($insertAfter) {
+                        $this->dispatch('insert-content', type: 'media', statePath: $this->statePath, media: $media);
+                        $this->dispatch('close-modal', id: $this->modalId ?? 'curator-panel');
+                        return;
+                    }
+
+                    foreach ($media as $item) {
+                        $this->addToSelection($item['id']);
+                    }
+                } catch (\Throwable $e) {
+                    Notification::make('upload_failed')
+                        ->title('Upload Failed')
+                        ->body($e->getMessage())
+                        ->danger()
+                        ->send();
+                    $this->form->fill([
+                        'files_to_add' => [],
+                    ]);
+                }
+            });
+    }
+
+
+    /**
+     * 
+     * @param array $formData
+     * @return array
+     */
+    protected function createMediaFiles(array $formData): array
+    {
+        $media = [];
+
+        foreach ($formData['files_to_add'] as $item) {
+            // Fix malformed utf-8 characters
+            if (! empty($item['exif'])) {
+                array_walk_recursive($item['exif'], function (&$entry) {
+                    if (! mb_detect_encoding($entry, 'utf-8', true)) {
+                        $entry = mb_convert_encoding($entry, 'utf-8');
+                    }
+                });
+            }
+
+            $item['title'] = pathinfo($formData['originalFilenames'][$item['path']] ?? null, PATHINFO_FILENAME);
+
+            $model = new MediaExtended($item);
+            $model->file = $item;
+            $model->save();
+
+            $media[] = tap($model, fn($media) => $media->getPrettyName())->toArray();
+        }
+
+        return $media;
+    }
+
 
     /**
      * 

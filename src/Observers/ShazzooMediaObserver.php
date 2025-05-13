@@ -35,6 +35,29 @@ class ShazzooMediaObserver
                 } else {
                     $media->{$k} = $v;
                 }
+
+
+                $fullPath = Storage::disk($media->file['disk'])->path($media->file['path']);
+                if (file_exists($fullPath)) {
+                    $hash = md5_file($fullPath);
+                    $media->file_hash = $hash;
+                }
+
+                if (config('shazzoo_media.check_duplicates') && $hash) {
+                    // Check for existing file with the same hash for this tenant
+                    $duplicate = Media::query()
+                        ->where('file_hash', $hash)
+                        ->when(
+                            $media->tenant_id,
+                            fn($query) =>
+                            $query->where('tenant_id', $media->tenant_id)
+                        )
+                        ->first();
+
+                    if ($duplicate) {
+                        throw new \Exception('Duplicate media detected for this tenant.');
+                    }
+                }
             }
         }
 

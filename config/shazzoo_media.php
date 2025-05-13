@@ -9,6 +9,7 @@ return [
     */
     'max_image_height' => 1000, 
     'max_image_width' => 1000, 
+    'check_duplicates' => true,
 
 
     /*

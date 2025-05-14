@@ -103,20 +103,19 @@ class ShazzooMediaObserver
             Storage::disk($media->disk)->move($media->path, $media->directory . '/' . $media->name . '.' . $media->ext);
             $media->path = $media->directory . '/' . $media->name . '.' . $media->ext;
 
-            //Rename conversion files
             $oldName = $media->getOriginal('name');
             $newName = $media->name;
 
-            $conversionDirectory = 'conversions/' . $oldName;
+            $conversionBaseDir = 'conversions/' . $oldName;
             $newConversionBaseDir = 'conversions/' . $newName;
 
             $disk = Storage::disk($media->disk);
 
-            if ($disk->exists($conversionDirectory)) {
+            if ($disk->exists($conversionBaseDir)) {
                 // Make new directory if needed
                 $disk->makeDirectory($newConversionBaseDir);
 
-                $conversionFiles = $disk->files($conversionDirectory);
+                $conversionFiles = $disk->files($conversionBaseDir);
 
                 foreach ($conversionFiles as $filePath) {
                     $filename = basename($filePath);
@@ -129,7 +128,7 @@ class ShazzooMediaObserver
                 }
 
                 // Optionally delete old conversion directory
-                $disk->deleteDirectory($conversionDirectory);
+                $disk->deleteDirectory($conversionBaseDir);
             }
         }
 

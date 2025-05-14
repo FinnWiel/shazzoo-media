@@ -29,7 +29,7 @@ class ShazzooMediaServerFactory implements ServerFactory
             }
 
             $filename = pathinfo($path, PATHINFO_FILENAME);
-            $ext = strtolower($params['fm'] ?? pathinfo($path, PATHINFO_EXTENSION) ?? config('shazzoo_media.default_extension'));
+            $ext = strtolower($params['fm'] ?? config('shazzoo_media.default_extension'));
 
             // Normalize extension 
             if ($ext === 'pjpg') {

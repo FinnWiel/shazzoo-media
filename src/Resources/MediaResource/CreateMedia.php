@@ -33,6 +33,8 @@ class CreateMedia extends CreateRecord
                             'file' => null,
                         ]);
 
+                        Storage::disk($disk)->delete($data['file']['path']);
+
                         Notification::make()
                             ->title('Duplicate File')
                             ->body('This file has already been uploaded.')

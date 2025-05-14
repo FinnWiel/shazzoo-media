@@ -55,6 +55,12 @@ class ShazzooMediaObserver
                         ->first();
 
                     if ($duplicate) {
+                        // 🚮 Delete the uploaded file to avoid orphaned media
+                        if (Storage::disk($media->file['disk'])->exists($media->file['path'])) {
+                            Storage::disk($media->file['disk'])->delete($media->file['path']);
+                            Log::info("🗑️ Deleted duplicate uploaded file: " . $media->file['path']);
+                        }
+
                         throw new \Exception('Duplicate media detected for this tenant.');
                     }
                 }
@@ -96,6 +102,35 @@ class ShazzooMediaObserver
             }
             Storage::disk($media->disk)->move($media->path, $media->directory . '/' . $media->name . '.' . $media->ext);
             $media->path = $media->directory . '/' . $media->name . '.' . $media->ext;
+
+            //Rename conversion files
+            $oldName = $media->getOriginal('name');
+            $newName = $media->name;
+
+            $conversionDirectory = 'conversions/' . $oldName;
+            $newConversionBaseDir = 'conversions/' . $newName;
+
+            $disk = Storage::disk($media->disk);
+
+            if ($disk->exists($conversionDirectory)) {
+                // Make new directory if needed
+                $disk->makeDirectory($newConversionBaseDir);
+
+                $conversionFiles = $disk->files($conversionDirectory);
+
+                foreach ($conversionFiles as $filePath) {
+                    $filename = basename($filePath);
+                    $newFilename = str_replace($oldName, $newName, $filename);
+
+                    $disk->move(
+                        $filePath,
+                        $newConversionBaseDir . '/' . $newFilename
+                    );
+                }
+
+                // Optionally delete old conversion directory
+                $disk->deleteDirectory($conversionDirectory);
+            }
         }
 
         $media->__unset('file');

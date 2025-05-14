@@ -79,7 +79,6 @@ class MediaExtended extends CuratorMedia
         $conversionPath = "conversions/{$baseName}/{$baseName}-{$conversion}.{$ext}";
 
         if (!Storage::disk('public')->exists($conversionPath)) {
-            Log::warning("Missing conversion: {$conversionPath}");
             return $this->url;
         }
 

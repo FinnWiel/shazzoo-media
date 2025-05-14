@@ -61,20 +61,13 @@ class ShazzooMediaPicker extends CuratorPicker
 
             // If no media IDs are found, log a warning and continue
             if (empty($mediaIds)) {
-                Log::warning("No media IDs found for field: {$field}");
                 continue;
             }
-
-            Log::info("Found media IDs for field: {$field}", [
-                'media_ids' => $mediaIds,
-            ]);
             // Process each media ID for the field
             foreach ($mediaIds as $mediaId) {
-                Log::info($mediaId);
                 $media = MediaExtended::find($mediaId);
 
                 if (!$media) {
-                    Log::warning("Media not found for ID: {$mediaId}");
                     continue;
                 }
 
@@ -83,7 +76,6 @@ class ShazzooMediaPicker extends CuratorPicker
                 // Add only new conversions
                 $newConversions = array_diff($conversions, $existingConversions);
                 if (empty($newConversions)) {
-                    Log::info("No new conversions to add for media ID: {$media->id}");
                     continue;
                 }
 
@@ -92,10 +84,6 @@ class ShazzooMediaPicker extends CuratorPicker
                 $media->conversions = json_encode($mergedConversions);
                 $media->save();
 
-                Log::info("Conversions saved for media ID: {$media->id}", [
-                    'new_conversions' => $newConversions,
-                    'all_conversions' => $mergedConversions,
-                ]);
 
                 Artisan::call('media:conversions:generate', ['--id' => $media->id]);
             }

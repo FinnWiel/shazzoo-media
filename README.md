@@ -151,6 +151,23 @@ So adding a new conversion called small would look like this:
 ],
 ```
 
+You can also edit the values of conversions, this can even be done when some conversions have already been made. Just be sure to run the ``` php artisan media:conversions:regenerate ``` command. This will regenerate the conversions to the new sizes.
+___
+### Artisan commands
+
+The Shazzoo Media plugin uses some artisan commands. 
+| Commands | Tags  | Uses |
+|--------------|----|-----------------------------------------------------------------------------------------|
+| `media:clear` | - | Clears your image files from the storage folder.|
+| `media:conversions:clear-db` | `id` | Clears conversion(s) in the database. |
+| `media:conversions:set-db` | `id` `append` | Sets conversion(s) in the databse. |
+| `media:conversions:generate` | `id` `all` `only`| Generates the conversions for the images. |
+| `media:conversions:regenerate` | `id` `only`| Regenerates the conversions for the images. |
+| `media:conversions:list` | - | Lists out all image conversions |
+
+ 
+
+
 
 
 

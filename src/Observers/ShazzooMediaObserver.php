@@ -58,7 +58,6 @@ class ShazzooMediaObserver
                         // 🚮 Delete the uploaded file to avoid orphaned media
                         if (Storage::disk($media->file['disk'])->exists($media->file['path'])) {
                             Storage::disk($media->file['disk'])->delete($media->file['path']);
-                            Log::info("🗑️ Deleted duplicate uploaded file: " . $media->file['path']);
                         }
 
                         throw new \Exception('Duplicate media detected for this tenant.');
@@ -143,25 +142,16 @@ class ShazzooMediaObserver
 
         // Delete the main media file
         Storage::disk($media->disk)->delete($path);
-        Log::info("✅ Deleted file: {$path} from {$media->disk}");
 
         // Safeguard directory cleanup
         $protectedDirs = ['public', '', '.', '/', 'media', 'storage'];
-        Log::info("Normalized directory: {$directory}");
-        Log::info("Protected directories: " . implode(', ', $protectedDirs));
 
         if (!in_array($directory, $protectedDirs, true)) {
             $fileCount = count(Storage::disk($media->disk)->allFiles($directory));
-            Log::info("File count in {$directory}: {$fileCount}");
 
             if ($fileCount === 0) {
                 Storage::disk($media->disk)->deleteDirectory($directory);
-                Log::info("✅ Deleted directory: {$directory} from {$media->disk}");
-            } else {
-                Log::info("⛔ Directory {$directory} not empty, skipping delete.");
             }
-        } else {
-            Log::warning("⛔ Attempted to delete protected directory: {$directory}, skipped.");
         }
 
         // ✅ Delete related Glide conversions folder by UUID
@@ -171,12 +161,7 @@ class ShazzooMediaObserver
             $conversionPath = "conversions/{$uuid}";
             if (Storage::disk('public')->exists($conversionPath)) {
                 Storage::disk('public')->deleteDirectory($conversionPath);
-                Log::info("✅ Deleted conversions directory: {$conversionPath}");
-            } else {
-                Log::info("ℹ️ No conversions found for: {$conversionPath}");
             }
-        } else {
-            Log::warning("⛔ Unsafe or missing UUID for conversions: {$uuid}");
         }
     }
 

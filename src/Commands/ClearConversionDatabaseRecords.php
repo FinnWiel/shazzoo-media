@@ -12,7 +12,8 @@ class ClearConversionDatabaseRecords extends Command
      *
      * @var string
      */
-    protected $signature = 'media:conversions:clear-db {--id= : Media ID to clear conversions. (Leave blank to clear all)}';
+    protected $signature = 'media:conversions:clear-db 
+                        {--id= : Media ID to clear conversions. (Leave blank to clear all)}';
 
     /**
      * The console command description.

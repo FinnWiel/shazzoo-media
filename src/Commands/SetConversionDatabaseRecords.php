@@ -12,7 +12,9 @@ class SetConversionDatabaseRecords extends Command
      *
      * @var string
      */
-    protected $signature = 'media:conversions:set-db {--id= : Media ID to update (omit for all)} {--append : Add to existing conversions instead of overwriting}';
+    protected $signature = 'media:conversions:set-db 
+                        {--id= : Media ID to update (omit for all)} 
+                        {--append : Add to existing conversions instead of overwriting}';
 
     /**
      * The console command description.

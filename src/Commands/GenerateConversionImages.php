@@ -14,7 +14,10 @@ class GenerateConversionImages extends Command
      *
      * @var string
      */
-    protected $signature = 'media:conversions:generate {--id=} {--all} {--only=}';
+    protected $signature = 'media:conversions:generate
+                        {--id= : The ID of a single media record to convert}
+                        {--all : Generate conversions for all media records}
+                        {--only= : Only generate a specific conversion (e.g., thumbnail, profile)}';
 
     /**
      * The console command description.
@@ -108,9 +111,8 @@ class GenerateConversionImages extends Command
                     'fm' => config('shazzoo_media.default_extension'),
                     'fit' => config('shazzoo_media.fit', 'max'),
                 ]);
-                Log::info("Conversion {$conversion} was successfully generated for: {$image->name}.");
             } catch (\Exception $e) {
-                Log::error("Failed to generate {$conversion} for {$image->name}: " . $e->getMessage());
+                //
             }
         }
     }

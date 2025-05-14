@@ -15,7 +15,10 @@ class RegenerateConversionImages extends Command
      *
      * @var string
      */
-    protected $signature = 'media:conversions:regenerate {--id=} {--only=}';
+    protected $signature = 'media:conversions:regenerate
+                        {--id= : The ID of a single media item to regenerate}
+                        {--only= : Only regenerate a specific conversion (e.g., thumbnail, medium)}';
+
 
     /**
      * The console command description.
@@ -111,7 +114,6 @@ class RegenerateConversionImages extends Command
                 ]);
             } catch (\Exception $e) {
                 $this->error("❌ Error regenerating {$conversion} for {$image->name}: " . $e->getMessage());
-                Log::error("Failed to regenerate {$conversion} for {$image->name}: " . $e->getMessage());
             }
         }
     }

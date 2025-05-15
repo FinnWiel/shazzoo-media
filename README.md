@@ -153,7 +153,7 @@ The Shazzoo Media library doesn't use a policy by default but lets you publish a
 php artisan vendor:publish --tag=shazzoo-media-policy
 ```
 
-This will publish a policy file to `App/Policies/MediaPolicy.php` the policy should be registered automatically by the plugin. The published file will be a blank policy, you will need to add your own rules.
+This will publish a policy file to `App/Policies/MediaPolicy.php` the policy should be registered automatically by the plugin. The published file will be a blank policy, you will need to add your own rules. Also make sure that `media_policies` is set to true in the `config/shazzoo_media.php`.
 
 #### Tenancy
 

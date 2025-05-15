@@ -117,7 +117,6 @@ class ShazzooMediaPanel extends BaseCuratorPanel
             ])->statePath('data');
     }
 
-
     /**
      * 
      * @return Action
@@ -194,7 +193,6 @@ class ShazzooMediaPanel extends BaseCuratorPanel
             });
     }
 
-
     /**
      * 
      * @param bool $insertAfter
@@ -229,7 +227,7 @@ class ShazzooMediaPanel extends BaseCuratorPanel
                     Notification::make('upload_failed')
                         ->title('Upload Failed')
                         ->body($e->getMessage())
-                        ->danger()
+                        ->warning()
                         ->send();
                     $this->form->fill([
                         'files_to_add' => [],

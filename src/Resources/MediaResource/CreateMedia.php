@@ -2,24 +2,24 @@
 
 namespace FinnWiel\ShazzooMedia\Resources\MediaResource;
 
-use Awcodes\Curator\CuratorPlugin;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use FinnWiel\ShazzooMedia\Models\MediaExtended;
+use FinnWiel\ShazzooMedia\Resources\MediaResource;
+use FinnWiel\ShazzooMedia\Services\DuplicateChecker;
+
 
 class CreateMedia extends CreateRecord
 {
     public static function getResource(): string
     {
-        return CuratorPlugin::get()->getResource();
+        return MediaResource::class;
     }
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        $tenantId = auth()->guard()->user()->tenant_id ?? null;
-
         if (config('shazzoo_media.check_duplicates')) {
             if (isset($data['file']['path'])) {
                 $disk = $data['file']['disk'] ?? 'public';
@@ -28,7 +28,7 @@ class CreateMedia extends CreateRecord
                 if (file_exists($fullPath)) {
                     $hash = md5_file($fullPath);
 
-                    if (MediaExtended::where('file_hash', $hash)->where('tenant_id', $tenantId)->exists()) {
+                    if (DuplicateChecker::isDuplicate($hash)) {
                         $this->form->fill([
                             'file' => null,
                         ]);
@@ -50,7 +50,6 @@ class CreateMedia extends CreateRecord
                 }
             }
         }
-
 
         if (blank($data['title'])) {
             $data['title'] = pathinfo($data['originalFilename'], PATHINFO_FILENAME);

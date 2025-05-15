@@ -26,38 +26,6 @@ class MediaExtended extends CuratorMedia
         'exif' => 'array',
     ];
 
-
-    protected static function booted()
-    {
-        static::addGlobalScope('tenant', function (Builder $builder) {
-            if (!config('shazzoo_media.enable_tenant_scope', true)) {
-                return;
-            }
-
-            if (Auth::check()) {
-                $user = Auth::user();
-
-                if ($user->hasRole('superadmin')) {
-                    return;
-                }
-
-                $builder->where(function ($query) use ($user) {
-                    $query->where('tenant_id', $user->tenant_id)
-                        ->orWhereNull('tenant_id'); // shared media
-                });
-            }
-        });
-    }
-
-    public function save(array $options = [])
-    {
-        if (Auth::check() && ! $this->tenant_id) {
-            $this->tenant_id = Auth::user()->tenant_id;
-        }
-
-        return parent::save($options);
-    }
-
     public function __get($key)
     {
         // Check if the requested key ends with "_url"
@@ -71,6 +39,43 @@ class MediaExtended extends CuratorMedia
         // Fallback to the parent __get method for other attributes
         return parent::__get($key);
     }
+
+    protected static function booted(): void
+    {
+        static::addGlobalScope('tenant', function (Builder $builder) {
+            $config = config('shazzoo_media.tenant_scoping');
+
+            if ($config['enabled']) {
+                $resolver = $config['resolver'];
+                $tenantId = $resolver();
+
+                if (!is_null($tenantId)) {
+                    $builder->where($config['field'], $tenantId);
+                }
+            }
+        });
+    }
+
+    public function save(array $options = [])
+    {
+        $config = config('shazzoo_media.tenant_scoping') ?? [];
+
+        if (!empty($config['enabled'])) {
+            $field = $config['field'] ?? 'tenant_id';
+            $resolver = $config['resolver'] ?? fn() => null;
+
+            if (empty($this->{$field})) {
+                $tenantId = $resolver();
+
+                if (!is_null($tenantId)) {
+                    $this->{$field} = $tenantId;
+                }
+            }
+        }
+
+        return parent::save($options);
+    }
+
 
     protected function getConversionUrl(string $conversion): string
     {

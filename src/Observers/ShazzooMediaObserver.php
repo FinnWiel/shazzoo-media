@@ -44,14 +44,9 @@ class ShazzooMediaObserver
                 }
 
                 if (config('shazzoo_media.check_duplicates') && $hash) {
-                    // Check for existing file with the same hash for this tenant
+                    // Check for existing file with the same hash
                     $duplicate = Media::query()
                         ->where('file_hash', $hash)
-                        ->when(
-                            $media->tenant_id,
-                            fn($query) =>
-                            $query->where('tenant_id', $media->tenant_id)
-                        )
                         ->first();
 
                     if ($duplicate) {
@@ -60,7 +55,7 @@ class ShazzooMediaObserver
                             Storage::disk($media->file['disk'])->delete($media->file['path']);
                         }
 
-                        throw new \Exception('Duplicate media detected for this tenant.');
+                        throw new \Exception('Duplicate media detected.');
                     }
                 }
             }

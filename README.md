@@ -32,7 +32,7 @@ If you installed Curator before Shazzoo Media, you’ll need to remove Curator�
 php artisan shazzoo_media:install
 ```
 
- > **Note:** This package will install curator for you but you will have to do some of the setup. Like installing CropperJS and using a custom filament theme for styling. If you have not set up a custom theme and are using a Panel follow the instructions in the Filament Docs first.
+ > **Note:** This plugin will install curator for you but you will have to do some of the setup. Like installing CropperJS and using a custom filament theme for styling. If you have not set up a custom theme and are using a Panel follow the instructions in the Filament Docs first.
 
 ```bash
 npm install -D cropperjs
@@ -60,7 +60,7 @@ The plugins settings can be managed through the config file
 php artisan vendor:publish --tag=shazzoo_media-config
 ```
 
-> **Note:** This package will also change some of curators settings, you can still manage curators setting but they may not work with Shazzoo Media
+> **Note:** This plugin will also change some of curators settings, you can still manage curators setting but they may not work with Shazzoo Media
 ___
 ### Filament Panels
 If you are using Filament Panels you will need to add the Plugin to your Panel's configuration. This will register the plugin's resources with the Panel. All methods are optional, and will be read from the config file if not provided.
@@ -103,29 +103,6 @@ class CreatePost extends CreateRecord
 }
 ```
 ___
-### Policies
-The package uses a policy for actions relating to the media library. This policy is used by default, but can be disabled by setting `media_policies` to `false` in the config file. 
-
-If you do want to keep using the media policy you need to add the `HasRoleCheck` trait to the User model. 
-
-```php
-use FinnWiel\ShazzooMedia\Traits\HasRoleCheck;
-```
-
-
-The policy uses these roles:
-
-| Role | Permissions |
-|--------------|-------------------------------------------------------------------------------------------|
-| **Viewer**      | `View`                                                     |
-| **Editor**      | `View` `Edit`                                              |
-| **Admin**       | `View` `Edit` `Upload`                                     |
-| **Super Admin** | All actions for all `tenant_id`'s                          |
- 
-The Shazzoo Media plugin also uses a tenant_id any media uploaded by a user will automatically have the same tenant_id as the user. This way only users with the same tenancy can see the media. Other roles will still apply.
-
-If you do not want to functionality simply set the `enable_tenant_scope` to `false` in the config file. This will make sure all tenancy checks are skipped. The tenant_id for media items will still be set to the tenant_id of the user that uploaded. This makes it possible to toggle this option later.
-___
 ### Conversions
 
 Conversions are set in `config/shazzoo_media.php` in the conversions array. To add or remove conversions change the array with the same structure.
@@ -164,6 +141,48 @@ The Shazzoo Media plugin uses some artisan commands.
 | `media:conversions:generate` | `id` `all` `only`| Generates the conversions for the images. |
 | `media:conversions:regenerate` | `id` `only`| Regenerates the conversions for the images. |
 | `media:conversions:list` | - | Lists out all image conversions |
+
+___
+### Policies & Tenancy
+
+#### Policies
+
+The Shazzoo Media library doesn't use a policy by default but lets you publish a policy template.
+
+```php
+php artisan vendor:publish --tag=shazzoo-media-policy
+```
+
+This will publish a policy file to `App/Policies/MediaPolicy.php` the policy should be registered automatically by the plugin. The published file will be a blank policy, you will need to add your own rules.
+
+#### Tenancy
+
+Shazzoo Media does not include tenancy support out of the box, but it provides configuration hooks to help you integrate tenancy into your media handling.
+
+To enable tenancy, follow these steps:
+
+1. In your `config/shazzoo_media.php`:
+```php
+'tenant_scoping' => [
+    'enabled' => true, 
+    'field' => 'tenant_id',
+    'resolver' => fn () => auth()->guard()->user()->tenant_id, 
+],
+```
+> **Note:** Enabling tenant scoping does not implement tenancy for you. These settings are a starting point — you'll need to integrate tenancy using your own logic or a plugin (e.g., Spatie Multitenancy).
+
+- `enabled`: Enables tenant isolation.
+- `field`: The database column used for tenant association.
+- `resolver`: A callable function that returns the current tenant’s ID.
+
+
+
+2. Add the chosen field to your media table
+
+Update your `media` and `users` table:
+```php
+$table->unsignedBigInteger('tenant_id')->nullable()->index();
+```
 
  
 

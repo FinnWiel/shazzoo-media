@@ -17,8 +17,12 @@ return [
     | Access Control
     |--------------------------------------------------------------------------
     */
-    'media_policies' => true,
-    'enable_tenant_scope' => false,
+    'media_policies' => false, 
+    'tenant_scoping' => [
+        'enabled' => false, 
+        'field' => null, 
+        'resolver' => null, 
+    ],
 
     /*
     |--------------------------------------------------------------------------
@@ -30,7 +34,7 @@ return [
         'profile' => ['width' => 80,'height' => 80],
         'thumbnail' => ['width' => 200,'height' => 200],
         'medium' => ['width' => 400,'height' => 400],
-        'large' => ['width' => 600,'height' => 600],
+        'large' => ['width' => 600,'height' => 600,],
     ],
     'fit' => 'max', // Options: 'crop', 'max', 'contain', 'stretch', 
 

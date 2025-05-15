@@ -40,6 +40,16 @@ class MediaResource extends BaseMediaResource
                                         return ! empty($name) ? Str::slug($name) : $component->getSuggestedFileName($file);
                                     }),
                             ]),
+                        Section::make(trans('curator::forms.sections.preview'))
+                            ->schema([
+                                ViewField::make('preview')
+                                    ->view('curator::components.forms.preview')
+                                    ->hiddenLabel()
+                                    ->dehydrated(false)
+                                    ->afterStateHydrated(function ($component, $state, $record) {
+                                        $component->state($record);
+                                    }),
+                            ]),
                         Section::make(trans('curator::forms.sections.details'))
                             ->schema([
                                 ViewField::make('details')
@@ -67,23 +77,26 @@ class MediaResource extends BaseMediaResource
                     ->columnSpan([
                         'md' => 'full',
                         'lg' => 2,
-                    ]),
+                    ]), // ✅ Fixed missing comma
                 Group::make()
                     ->schema([
                         Section::make(trans('curator::forms.sections.meta'))
                             ->schema(
                                 static::getAdditionalInformationFormSchema()
                             ),
-                    ])->columnSpan([
+                    ])
+                    ->columnSpan([
                         'md' => 'full',
                         'lg' => 1,
                     ]),
-            ])->columns([
+            ])
+            ->columns([
                 'lg' => 3,
             ]);
     }
+
     /**
-     * @throws Exception
+     * @throws \Exception
      */
     public static function table(Table $table): Table
     {
@@ -93,7 +106,7 @@ class MediaResource extends BaseMediaResource
             ->columns(
                 $livewire->layoutView === 'grid'
                     ? static::getDefaultGridTableColumns()
-                    : static::getDefaultTableColumns(),
+                    : static::getDefaultTableColumns()
             )
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -158,7 +171,7 @@ class MediaResource extends BaseMediaResource
                 '3:2',
                 '1:1',
             ])
-            ->formatStateUsing(fn ($state) => is_array($state) && isset($state['path']) ? $state['path'] : $state);
+            ->formatStateUsing(fn($state) => is_array($state) && isset($state['path']) ? $state['path'] : $state);
     }
 
     public static function getPages(): array

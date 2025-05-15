@@ -2,17 +2,17 @@
 
 namespace FinnWiel\ShazzooMedia\Resources\MediaResource;
 
-use Awcodes\Curator\CuratorPlugin;
 use Exception;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
+use FinnWiel\ShazzooMedia\Resources\MediaResource;
 
 class EditMedia extends EditRecord
 {
     public static function getResource(): string
     {
-        return CuratorPlugin::get()->getResource();
+        return MediaResource::class;
     }
 
     /**

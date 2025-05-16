@@ -104,13 +104,18 @@ class RegenerateConversionImages extends Command
                 unlink($outputPath);
             }
 
+            $conversionConfig = config('shazzoo_media.conversions.' . $conversion);
+            $defaultFit = config('shazzoo_media.fit', 'max');
+            $defaultFormat = config('shazzoo_media.conversion_ext', 'webp');
+
             try {
                 // Regenerate the image
                 $this->server->makeImage($image->path, [
                     'conversion' => $conversion,
-                    'w' => $config['width'],
-                    'h' => $config['height'],
-                    'fm' => config('shazzoo_media.conversion_ext'),
+                    'w' => $conversionConfig['width'] ?? null,
+                    'h' => $conversionConfig['height'] ?? null,
+                    'fit' => $conversionConfig['fit'] ?? $defaultFit,
+                    'fm' => $conversionConfig['ext'] ?? $defaultFormat,
                 ]);
             } catch (\Exception $e) {
                 $this->error("❌ Error regenerating {$conversion} for {$image->name}: " . $e->getMessage());

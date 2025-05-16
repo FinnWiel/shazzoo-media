@@ -98,6 +98,8 @@ class GenerateConversionImages extends Command
             }
 
             $conversionConfig = config('shazzoo_media.conversions.' . $conversion);
+            $defaultFit = config('shazzoo_media.fit', 'max');
+            $defaultFormat = config('shazzoo_media.conversion_ext', 'webp');
 
             if (!$conversionConfig) {
                 continue;
@@ -106,10 +108,10 @@ class GenerateConversionImages extends Command
             try {
                 $this->server->makeImage($image->path, [
                     'conversion' => $conversion,
-                    'w' => $conversionConfig['width'],
-                    'h' => $conversionConfig['height'],
-                    'fm' => config('shazzoo_media.default_extension'),
-                    'fit' => config('shazzoo_media.fit', 'max'),
+                    'w' => $conversionConfig['width'] ?? null,
+                    'h' => $conversionConfig['height'] ?? null,
+                    'fit' => $conversionConfig['fit'] ?? $defaultFit,
+                    'fm' => $conversionConfig['ext'] ?? $defaultFormat,
                 ]);
             } catch (\Exception $e) {
                 //

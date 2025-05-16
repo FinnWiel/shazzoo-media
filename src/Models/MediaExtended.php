@@ -80,7 +80,8 @@ class MediaExtended extends CuratorMedia
     protected function getConversionUrl(string $conversion): string
     {
         $baseName = pathinfo($this->name, PATHINFO_FILENAME);
-        $ext = config('shazzoo_media.conversion_ext', 'webp');
+        $conversionConfig = config("shazzoo_media.conversions.{$conversion}", []);
+        $ext = $conversionConfig['ext'] ?? config('shazzoo_media.conversion_ext', 'webp');
         $conversionPath = "conversions/{$baseName}/{$baseName}-{$conversion}.{$ext}";
 
         if (!Storage::disk('public')->exists($conversionPath)) {

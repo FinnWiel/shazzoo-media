@@ -66,45 +66,58 @@
                 @if (filled($record))
                     <div class="flex items-end justify-between gap-6">
                         <span class="truncate">{{ $record->url }}</span>
-                        <button
-                                type="button"
-                                class="text-sm flex-shrink-0 flex items-center gap-2"
-                                x-data="{
-                                    showMessage: false,
-                                    toggleMessage: function() {
-                                        this.showMessage = true;
-                                        setTimeout(() => {
-                                            this.showMessage = false;
-                                        }, 1000)
-                                    },
-                                    handleCopy: function(subject) {
-                                        navigator.clipboard.writeText(subject)
-                                    }
-                                }"
-                                x-on:click="handleCopy('{{ $record->url }}'); toggleMessage();"
-                        >
+                        <button type="button" class="text-sm flex-shrink-0 flex items-center gap-2"
+                            x-data="{
+                                showMessage: false,
+                                toggleMessage: function() {
+                                    this.showMessage = true;
+                                    setTimeout(() => {
+                                        this.showMessage = false;
+                                    }, 1000)
+                                },
+                                handleCopy: function(subject) {
+                                    navigator.clipboard.writeText(subject)
+                                }
+                            }" x-on:click="handleCopy('{{ $record->url }}'); toggleMessage();">
                             <span x-show="! showMessage" class="filament-link">
-                                <x-filament::icon
-                                    alias="curator::copy-link"
-                                    icon="heroicon-s-clipboard-document"
-                                    class="w-4 h-4"
-                                />
+                                <x-filament::icon alias="curator::copy-link" icon="heroicon-s-clipboard-document"
+                                    class="w-4 h-4" />
                             </span>
-                            <span x-show="! showMessage" class="filament-link">{{ trans('curator::views.details.copy_url') }}</span>
+                            <span x-show="! showMessage"
+                                class="filament-link">{{ trans('curator::views.details.copy_url') }}</span>
                             <span x-show="showMessage" class="text-success-500 font-bold" style="display:none;">
-                                <x-filament::icon
-                                    alias="curator::copy-link"
-                                    icon="heroicon-s-check-circle"
-                                    class="w-4 h-4"
-                                />
+                                <x-filament::icon alias="curator::copy-link" icon="heroicon-s-check-circle"
+                                    class="w-4 h-4" />
                             </span>
-                            <span x-show="showMessage" class="text-success-500 font-bold" style="display:none;">{{ trans('curator::views.details.url_copied') }}</span>
+                            <span x-show="showMessage" class="text-success-500 font-bold"
+                                style="display:none;">{{ trans('curator::views.details.url_copied') }}</span>
                         </button>
                     </div>
                 @else
-                -
+                    -
                 @endif
             </dd>
         </div>
+        @php
+            $conversions = json_decode($record->conversions ?? '[]', true);
+        @endphp
+
+        @if (!empty($conversions))
+            <div class="md:col-span-3">
+                <dt class="{{ $labelClasses }}">
+                    {{ __('Conversions') }}
+                </dt>
+                <dd class="{{ $dataClasses }}">
+                    <ul class="list-disc list-inside text-sm text-gray-700 dark:text-gray-300">
+                        @foreach ($conversions as $conversion)
+                            <li class="capitalize">{{ $conversion }}</li>
+                        @endforeach
+                    </ul>
+                </dd>
+            </div>
+        @endif
+
+        {{-- TODO: ADD TENANCY COLLUMN VALUE --}}
+
     </dl>
 </div>

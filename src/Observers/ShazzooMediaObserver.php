@@ -2,6 +2,7 @@
 
 namespace FinnWiel\ShazzooMedia\Observers;
 
+use FinnWiel\ShazzooMedia\Exceptions\DuplicateMediaException;
 use FinnWiel\ShazzooMedia\Models\MediaExtended as Media;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -50,12 +51,13 @@ class ShazzooMediaObserver
                         ->first();
 
                     if ($duplicate) {
-                        // 🚮 Delete the uploaded file to avoid orphaned media
+                        // Delete the uploaded file to avoid orphaned media
                         if (Storage::disk($media->file['disk'])->exists($media->file['path'])) {
                             Storage::disk($media->file['disk'])->delete($media->file['path']);
                         }
 
-                        throw new \Exception('Duplicate media detected.');
+                        throw new DuplicateMediaException($duplicate);
+                        // throw new \Exception('Duplicate media detected.');
                     }
                 }
             }

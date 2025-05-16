@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Log;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use FinnWiel\ShazzooMedia\Components\Forms\ShazzooMediaUploader;
+use FinnWiel\ShazzooMedia\Exceptions\DuplicateMediaException;
 use Livewire\Attributes\On;
 
 class ShazzooMediaPanel extends BaseCuratorPanel
@@ -34,6 +35,10 @@ class ShazzooMediaPanel extends BaseCuratorPanel
         $this->mediaClass = new \FinnWiel\ShazzooMedia\Models\MediaExtended();
     }
 
+    /**
+     * @var string[]    
+     * 
+     */
     #[On('open-modal')]
     public function openModal(string $id, array $settings = []): void
     {
@@ -223,15 +228,21 @@ class ShazzooMediaPanel extends BaseCuratorPanel
                     foreach ($media as $item) {
                         $this->addToSelection($item['id']);
                     }
-                } catch (\Throwable $e) {
+                } catch (DuplicateMediaException $e) {
+                    $existingMedia = $e->getDuplicate();
                     Notification::make('upload_failed')
                         ->title('Upload Failed')
                         ->body($e->getMessage())
                         ->warning()
                         ->send();
-                    $this->form->fill([
-                        'files_to_add' => [],
-                    ]);
+
+
+                    $this->selected = [];
+                    $this->addToSelection($existingMedia->id);
+
+                    $insertAction = $this->insertMediaAction();
+                    $insertAction->call(); // Not officially supported; can break if `uses()` isn't set
+
                 }
             });
     }

@@ -117,7 +117,5 @@
             </div>
         @endif
 
-        {{-- TODO: ADD TENANCY COLLUMN VALUE --}}
-
     </dl>
 </div>

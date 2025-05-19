@@ -51,9 +51,9 @@ class ShazzooMediaServiceProvider extends PackageServiceProvider
 
     public function packageBooted(): void
     {
-        // Temporarily use old views
-        $this->loadViewsFrom(__DIR__ . '/../resources/views/vendor/curator', 'curator');
-        // $this->loadViewsFrom(__DIR__ . '/../resources/views', 'curator');
+        // Use new views
+        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'curator');
+        // $this->loadViewsFrom(__DIR__ . '/../resources/views/vendor/curator', 'curator');
         $this->publishes([
             __DIR__ . '/Policies/.php.stub' => app_path('Policies/MediaPolicy.php'),
         ], 'shazzoo-media-policy');
@@ -92,8 +92,8 @@ class ShazzooMediaServiceProvider extends PackageServiceProvider
         ShazzooMedia::observe(ShazzooMediaObserver::class);
 
         // Load the views from the package instead of from curator
-        View::prependNamespace('curator', __DIR__ . '/../resources/views/vendor/curator');
-        // View::prependNamespace('curator', __DIR__ . '/../resources/views');
+        View::prependNamespace('curator', __DIR__ . '/../resources/views');
+        // View::prependNamespace('curator', __DIR__ . '/../resources/views/vendor/curator');
 
         FilamentAsset::register([
             Css::make('curator', base_path('vendor/awcodes/filament-curator/resources/dist/curator.css'))->loadedOnRequest(false),

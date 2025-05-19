@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
-class MediaExtended extends CuratorMedia
+class ShazzooMedia extends CuratorMedia
 {
 
     protected $table = 'media';
@@ -28,52 +28,11 @@ class MediaExtended extends CuratorMedia
 
     public function __get($key)
     {
-        // Check if the requested key ends with "_url"
         if (str_ends_with($key, '_url')) {
             $conversion = str_replace('_url', '', $key);
-
-            // Dynamically return the conversion URL
             return $this->getConversionUrl($conversion);
         }
-
-        // Fallback to the parent __get method for other attributes
         return parent::__get($key);
-    }
-
-    protected static function booted(): void
-    {
-        static::addGlobalScope('tenant', function (Builder $builder) {
-            $config = config('shazzoo_media.tenant_scoping');
-
-            if ($config['enabled']) {
-                $resolver = $config['resolver'];
-                $tenantId = $resolver();
-
-                if (!is_null($tenantId)) {
-                    $builder->where($config['field'], $tenantId);
-                }
-            }
-        });
-    }
-
-    public function save(array $options = [])
-    {
-        $config = config('shazzoo_media.tenant_scoping') ?? [];
-
-        if (!empty($config['enabled'])) {
-            $field = $config['field'] ?? 'tenant_id';
-            $resolver = $config['resolver'] ?? fn() => null;
-
-            if (empty($this->{$field})) {
-                $tenantId = $resolver();
-
-                if (!is_null($tenantId)) {
-                    $this->{$field} = $tenantId;
-                }
-            }
-        }
-
-        return parent::save($options);
     }
 
 

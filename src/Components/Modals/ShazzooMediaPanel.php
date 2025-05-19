@@ -2,7 +2,7 @@
 
 namespace FinnWiel\ShazzooMedia\Components\Modals;
 
-use FinnWiel\ShazzooMedia\Models\MediaExtended;
+use FinnWiel\ShazzooMedia\Models\ShazzooMedia;
 use Illuminate\View\View;
 use Filament\Forms\Components\View as FormView;
 use Awcodes\Curator\Components\Modals\CuratorPanel as BaseCuratorPanel;
@@ -32,7 +32,7 @@ class ShazzooMediaPanel extends BaseCuratorPanel
 
     public function __construct()
     {
-        $this->mediaClass = new \FinnWiel\ShazzooMedia\Models\MediaExtended();
+        $this->mediaClass = new \FinnWiel\ShazzooMedia\Models\ShazzooMedia();
     }
 
     /**
@@ -114,7 +114,7 @@ class ShazzooMediaPanel extends BaseCuratorPanel
                     ...collect(App::make(MediaResource::class)->getAdditionalInformationFormSchema())
                         ->map(function ($field) {
                             return $field->disabled(function () {
-                                $media = MediaExtended::find($this->selected)->first();
+                                $media = ShazzooMedia::find($this->selected)->first();
                                 return !Gate::allows('update', $media);
                             });
                         })->toArray(),
@@ -269,7 +269,7 @@ class ShazzooMediaPanel extends BaseCuratorPanel
 
             $item['title'] = pathinfo($formData['originalFilenames'][$item['path']] ?? null, PATHINFO_FILENAME);
 
-            $model = new MediaExtended($item);
+            $model = new ShazzooMedia($item);
             $model->file = $item;
             $model->save();
 

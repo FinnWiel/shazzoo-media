@@ -28,7 +28,7 @@ class CreateMedia extends CreateRecord
                 if (file_exists($fullPath)) {
                     $hash = md5_file($fullPath);
 
-                    if (DuplicateChecker::isDuplicate($hash)) {
+                    if (MediaExtended::where('file_hash', $hash)->exists()) {
                         $this->form->fill([
                             'file' => null,
                         ]);

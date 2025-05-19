@@ -109,10 +109,10 @@ Conversions are set in `config/shazzoo_media.php` in the conversions array. To a
 
 ```php
 'conversions' => [
-    'profile' => ['width' => 80,'height' => 80],
-    'thumbnail' => ['width' => 200,'height' => 200],
-    'medium' => ['width' => 400,'height' => 400],
-    'large' => ['width' => 600,'height' => 600],
+    'profile' => ['width' => 80, 'height' => 80],
+    'thumbnail' => ['width' => 200, 'height' => 200],
+    'medium' => ['width' => 400, 'height' => 400],
+    'large' => ['width' => 600, 'height' => 600],
 ],
 ```
 
@@ -120,15 +120,15 @@ So adding a new conversion called small would look like this:
 
 ```php
 'conversions' => [
-    'profile' => ['width' => 80,'height' => 80],
-    'thumbnail' => ['width' => 200,'height' => 200],
-    'medium' => ['width' => 400,'height' => 400],
-    'large' => ['width' => 600,'height' => 600],
-    'small' => ['width' => 100,'height' => 100],
+    'profile' => ['width' => 80, 'height' => 80, 'fit' => 'crop'],
+    'thumbnail' => ['width' => 200, 'height' => 200],
+    'medium' => ['width' => 400, 'height' => 400],
+    'large' => ['width' => 600, 'height' => 600],
+    'small' => ['width' => 100, 'height' => 100],
 ],
 ```
 
-You can also edit the values of conversions, this can even be done when some conversions have already been made. Just be sure to run the ``` php artisan media:conversions:regenerate ``` command. This will regenerate the conversions to the new sizes.
+As you can see the existing conversions can also be edited, this can even be done when some conversions have already been made. Just be sure to run the ``` php artisan media:conversions:regenerate ``` command. This will regenerate the conversions to the new sizes.
 ___
 ### Artisan commands
 
@@ -157,34 +157,9 @@ This will publish a policy file to `App/Policies/MediaPolicy.php` the policy sho
 
 #### Tenancy
 
-Shazzoo Media does not include tenancy support out of the box, but it provides configuration hooks to help you integrate tenancy into your media handling.
+This package does not implement tenancy or user-based access control out of the box.
 
-To enable tenancy, follow these steps:
-
-1. In your `config/shazzoo_media.php`:
-```php
-'tenant_scoping' => [
-    'enabled' => true, 
-    'field' => 'tenant_id',
-    'resolver' => fn () => auth()->guard()->user()->tenant_id, 
-],
-```
-> **Note:** Enabling tenant scoping does not implement tenancy for you. These settings are a starting point — you'll need to integrate tenancy using your own logic or a plugin (e.g., Spatie Multitenancy).
-
-- `enabled`: Enables tenant isolation.
-- `field`: The database column used for tenant association.
-- `resolver`: A callable function that returns the current tenant’s ID.
-
-
-
-2. Add the chosen field to your media table
-
-Update your `media` and `users` table:
-```php
-$table->unsignedBigInteger('tenant_id')->nullable()->index();
-```
-
- 
+If your application requires scoping media by tenant, team, or user, you are responsible for applying your own global scope to the `MediaExtended` model. This can be done by publishing the model and implementing it there, or you can add the global scope in the `AppServiceProvider.php`'s boot function. 
 
 
 

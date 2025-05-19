@@ -13,7 +13,7 @@ use FinnWiel\ShazzooMedia\Commands\ListConversionDefinitions;
 use FinnWiel\ShazzooMedia\Commands\RegenerateConversionImages;
 use FinnWiel\ShazzooMedia\Commands\SetConversionDatabaseRecords;
 use FinnWiel\ShazzooMedia\Components\Modals\ShazzooMediaPanel;
-use FinnWiel\ShazzooMedia\Models\MediaExtended;
+use FinnWiel\ShazzooMedia\Models\ShazzooMedia;
 use FinnWiel\ShazzooMedia\Observers\ShazzooMediaObserver;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
@@ -30,7 +30,7 @@ class ShazzooMediaServiceProvider extends PackageServiceProvider
         $package
             ->name('shazzoo_media')
             ->hasConfigFile()
-            ->hasViews()
+            ->hasViews('resources/views')
             ->hasMigrations([
                 'create_media_table',
             ])
@@ -51,14 +51,16 @@ class ShazzooMediaServiceProvider extends PackageServiceProvider
 
     public function packageBooted(): void
     {
+        // Temporarily use old views
         $this->loadViewsFrom(__DIR__ . '/../resources/views/vendor/curator', 'curator');
+        // $this->loadViewsFrom(__DIR__ . '/../resources/views', 'curator');
         $this->publishes([
             __DIR__ . '/Policies/.php.stub' => app_path('Policies/MediaPolicy.php'),
         ], 'shazzoo-media-policy');
 
         // Set all changes for curator conifig to work with shazzoo media
         config()->set('curator.resources.resource', \FinnWiel\ShazzooMedia\Resources\MediaResource::class); // Resource
-        config()->set('curator.model', \FinnWiel\ShazzooMedia\Models\MediaExtended::class); // Model
+        config()->set('curator.model', \FinnWiel\ShazzooMedia\Models\ShazzooMedia::class); // Model
         config()->set('curator.glide.server', \FinnWiel\ShazzooMedia\Glide\ShazzooMediaServerFactory::class);
         config()->set('curator.glide.route_path', 'storage'); // Glide server
         config()->set('curator.tabs.display_curation', false); // Display curation tab
@@ -71,7 +73,7 @@ class ShazzooMediaServiceProvider extends PackageServiceProvider
 
             if (File::exists($customPolicy)) {
                 Gate::policy(
-                    \FinnWiel\ShazzooMedia\Models\MediaExtended::class,
+                    \FinnWiel\ShazzooMedia\Models\ShazzooMedia::class,
                     \App\Policies\MediaPolicy::class
                 );
             } else {
@@ -81,16 +83,17 @@ class ShazzooMediaServiceProvider extends PackageServiceProvider
             }
         }
 
-        $this->app->bind(Media::class, MediaExtended::class);
+        $this->app->bind(Media::class, ShazzooMedia::class);
 
         Livewire::component('curator-panel', ShazzooMediaPanel::class);
 
         // Register the Models observer
-        MediaExtended::flushEventListeners();
-        MediaExtended::observe(ShazzooMediaObserver::class);
+        ShazzooMedia::flushEventListeners();
+        ShazzooMedia::observe(ShazzooMediaObserver::class);
 
         // Load the views from the package instead of from curator
         View::prependNamespace('curator', __DIR__ . '/../resources/views/vendor/curator');
+        // View::prependNamespace('curator', __DIR__ . '/../resources/views');
 
         FilamentAsset::register([
             Css::make('curator', base_path('vendor/awcodes/filament-curator/resources/dist/curator.css'))->loadedOnRequest(false),

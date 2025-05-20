@@ -76,6 +76,10 @@ If you are using Filament Panels you will need to add the Plugin to your Panel's
 public function panel(Panel $panel): Panel
 {
     return $panel
+        ->colors([
+                'primary' => Color::Amber,
+                'secondary' => Color::Cyan, // Add a secondary color
+            ])
         ->plugins([
                 \Awcodes\Curator\CuratorPlugin::make()
                     ->label('Media')

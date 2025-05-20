@@ -147,10 +147,10 @@ class ShazzooMediaPicker extends CuratorPicker
     public function getPickerAction(): Action
     {
         return Action::make('open_curator_picker')
-            ->label('Select Image')
+            ->label(trans('shazzoo_media::views.picker.select'))
             ->button()
             ->size('md')
-            ->color(Color::Amber)
+            ->color('primary')
             ->icon('heroicon-s-photo')
             ->outlined(true)
             ->action(function (CuratorPicker $component, \Livewire\Component $livewire) {

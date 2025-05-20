@@ -105,7 +105,7 @@
         @if (!empty($conversions))
             <div class="md:col-span-3">
                 <dt class="{{ $labelClasses }}">
-                    {{ __('Conversions') }}
+                   {{ trans('shazzoo_media::views.details.conversions') }}
                 </dt>
                 <dd class="{{ $dataClasses }}">
                     <ul class="list-disc list-inside text-sm text-gray-700 dark:text-gray-300">

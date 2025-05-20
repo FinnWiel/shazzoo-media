@@ -11,7 +11,7 @@ class DuplicateMediaException extends Exception
 
     public function __construct(ShazzooMedia $duplicate)
     {
-        parent::__construct('Duplicate media detected. We have selected the duplicate for you.');
+        parent::__construct(trans('shazzoo_media::notifications.exeptions.duplicate.message'));
         $this->duplicate = $duplicate;
     }
 

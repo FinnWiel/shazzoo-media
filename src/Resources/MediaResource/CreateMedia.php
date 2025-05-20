@@ -36,8 +36,8 @@ class CreateMedia extends CreateRecord
                         Storage::disk($disk)->delete($data['file']['path']);
 
                         Notification::make()
-                            ->title('Duplicate File')
-                            ->body('This file has already been uploaded.')
+                            ->title(trans('shazzoo_media::notifications.exeptions.duplicate.title'))
+                            ->body(trans('shazzoo_media::notifications.exeptions.duplicate.resource'))
                             ->danger()
                             ->send();
 

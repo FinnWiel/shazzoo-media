@@ -34,6 +34,7 @@ class ShazzooMediaServiceProvider extends PackageServiceProvider
             ->hasMigrations([
                 'create_media_table',
             ])
+            ->hasTranslations()
             ->hasCommands([
                 ClearConversionDatabaseRecords::class,
                 ClearMedia::class,

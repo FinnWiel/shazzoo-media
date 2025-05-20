@@ -131,7 +131,7 @@ class ShazzooMediaPanel extends BaseCuratorPanel
         return $this->addFilesAction(true)
             ->name('addInsertFiles')
             ->color('primary')
-            ->label('Insert image');
+            ->label(trans('shazzoo_media::views.panel.buttons.insert'));
     }
 
     /**
@@ -144,7 +144,7 @@ class ShazzooMediaPanel extends BaseCuratorPanel
             ->button()
             ->size('sm')
             ->color('primary')
-            ->label('Use image')
+            ->label(trans('shazzoo_media::views.panel.buttons.use'))
             ->action(function (): void {
                 $this->dispatch(
                     'insert-content',
@@ -209,7 +209,7 @@ class ShazzooMediaPanel extends BaseCuratorPanel
             ->button()
             ->size('sm')
             ->color('primary')
-            ->label('Insert image')
+            ->label(trans('shazzoo_media::views.panel.buttons.insert'))
             ->disabled(fn(): bool => count($this->form->getRawState()['files_to_add'] ?? []) === 0)
             ->visible(fn() => true)
             ->action(function () use ($insertAfter): void {
@@ -231,7 +231,7 @@ class ShazzooMediaPanel extends BaseCuratorPanel
                 } catch (DuplicateMediaException $e) {
                     $existingMedia = $e->getDuplicate();
                     Notification::make('upload_failed')
-                        ->title('Upload Failed')
+                        ->title(trans('shazzoo_media::notifications.exeptions.duplicate.title'))
                         ->body($e->getMessage())
                         ->warning()
                         ->send();

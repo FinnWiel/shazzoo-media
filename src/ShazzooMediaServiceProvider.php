@@ -85,7 +85,9 @@ class ShazzooMediaServiceProvider extends PackageServiceProvider
 
         $this->app->bind(Media::class, ShazzooMedia::class);
 
-        Livewire::component('curator-panel', ShazzooMediaPanel::class);
+        if (app()->bound('livewire')) {
+            Livewire::component('curator-panel', ShazzooMediaPanel::class);
+        }
 
         // Register the Models observer
         ShazzooMedia::flushEventListeners();

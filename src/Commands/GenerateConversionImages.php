@@ -3,9 +3,8 @@
 namespace FinnWiel\ShazzooMedia\Commands;
 
 use FinnWiel\ShazzooMedia\Glide\ShazzooMediaServerFactory;
-use FinnWiel\ShazzooMedia\Models\MediaExtended;
+use FinnWiel\ShazzooMedia\Models\ShazzooMedia;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Log;
 
 class GenerateConversionImages extends Command
 {
@@ -42,10 +41,10 @@ class GenerateConversionImages extends Command
         $only = $this->option('only');
 
         if ($this->option('all')) {
-            $images = MediaExtended::all();
+            $images = ShazzooMedia::all();
             $this->info('Starting conversion for all images...');
         } elseif ($imageId = $this->option('id')) {
-            $images = MediaExtended::where('id', $imageId)->get();
+            $images = ShazzooMedia::where('id', $imageId)->get();
             $this->info("Starting conversion for image id: {$imageId}...");
         } else {
             $this->error('You must specify either --all or --id.');
@@ -67,11 +66,11 @@ class GenerateConversionImages extends Command
     /**
      * Generate the image cache using Glide.
      *
-     * @param  App\Models\MediaExtended $image
+     * @param  App\Models\ShazzooMedia $image
      * @param  string|null $only
      * @return void
      */
-    protected function generateImageCache(MediaExtended $image, ?string $only = null)
+    protected function generateImageCache(ShazzooMedia $image, ?string $only = null)
     {
         $imagePath = storage_path('app/public/' . $image->path);
 

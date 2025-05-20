@@ -2,7 +2,7 @@
 
 namespace FinnWiel\ShazzooMedia\Commands;
 
-use FinnWiel\ShazzooMedia\Models\MediaExtended;
+use FinnWiel\ShazzooMedia\Models\ShazzooMedia;
 use Illuminate\Console\Command;
 
 class ClearConversionDatabaseRecords extends Command
@@ -30,7 +30,7 @@ class ClearConversionDatabaseRecords extends Command
         $mediaId = $this->option('id');
 
         if ($mediaId) {
-            $media = MediaExtended::find($mediaId);
+            $media = ShazzooMedia::find($mediaId);
             if (! $media) {
                 $this->error("❌ Media with ID {$mediaId} not found.");
                 return Command::FAILURE;
@@ -41,8 +41,8 @@ class ClearConversionDatabaseRecords extends Command
 
             $this->info("🧹 Cleared conversions for media ID {$mediaId}.");
         } else {
-            $count = MediaExtended::whereNotNull('conversions')->count();
-            MediaExtended::query()->update(['conversions' => null]);
+            $count = ShazzooMedia::whereNotNull('conversions')->count();
+            ShazzooMedia::query()->update(['conversions' => null]);
             
             $this->info("🧹 Cleared conversions for {$count} media items.");
         }

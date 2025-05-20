@@ -3,7 +3,7 @@
 namespace FinnWiel\ShazzooMedia\Commands;
 
 use FinnWiel\ShazzooMedia\Glide\ShazzooMediaServerFactory;
-use FinnWiel\ShazzooMedia\Models\MediaExtended;
+use FinnWiel\ShazzooMedia\Models\ShazzooMedia;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
@@ -44,10 +44,10 @@ class RegenerateConversionImages extends Command
         $id = $this->option('id');
 
         if ($id) {
-            $images = MediaExtended::where('id', $id)->get();
+            $images = ShazzooMedia::where('id', $id)->get();
             $this->info("🔁 Regenerating conversions for image ID: {$id}...");
         } else {
-            $images = MediaExtended::all();
+            $images = ShazzooMedia::all();
             $this->info('🔁 Regenerating conversions for all images...');
         }
 
@@ -64,7 +64,7 @@ class RegenerateConversionImages extends Command
         return Command::SUCCESS;
     }
 
-    protected function regenerateImageConversions(MediaExtended $image, ?string $only = null)
+    protected function regenerateImageConversions(ShazzooMedia $image, ?string $only = null)
     {
         $imagePath = storage_path('app/public/' . $image->path);
 

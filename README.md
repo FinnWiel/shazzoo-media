@@ -19,7 +19,8 @@ A Laravel + Filament plugin that extends [Filament Curator](https://github.com/a
 
 ---
 
-##  Installation
+## Installation
+
 You can install the package via composer then run the installation command:
 
 ```bash
@@ -32,26 +33,29 @@ If you installed Curator before Shazzoo Media, youâ€™ll need to remove Curatorâ€
 php artisan shazzoo_media:install
 ```
 
- > **Note:** This plugin will install curator for you but you will have to do some of the setup. Like installing CropperJS and using a custom filament theme for styling. If you have not set up a custom theme and are using a Panel follow the instructions in the Filament Docs first.
+> **Note:** This plugin will install curator for you but you will have to do some of the setup. Like installing CropperJS and using a custom filament theme for styling. If you have not set up a custom theme and are using a Panel follow the instructions in the Filament Docs first.
 
 ```bash
 npm install -D cropperjs
 ```
 
-
 Import the plugin's stylesheet and cropperjs' stylesheet into your theme's css file.
+
 ```php
 @import '<path-to-vendor>/awcodes/filament-curator/resources/css/plugin.css';
 ```
-Add the plugin's views to your ```tailwind.config.js``` file.
+
+Add the plugin's views to your `tailwind.config.js` file.
+
 ```php
 content: [
         './vendor/awcodes/filament-curator/resources/**/*.blade.php',
-        './vendor/finnwiel/shazzoo-media/resources/views/vendor/curator/components/**/*.blade.php',
+        './vendor/finnwiel/shazzoo-media/resources/views/components/**/*.blade.php',
 ]
 ```
 
-##  Usage
+## Usage
+
 ### Global settings
 
 The plugins settings can be managed through the config file
@@ -61,8 +65,11 @@ php artisan vendor:publish --tag=shazzoo_media-config
 ```
 
 > **Note:** This plugin will also change some of curators settings, you can still manage curators setting but they may not work with Shazzoo Media
-___
+
+---
+
 ### Filament Panels
+
 If you are using Filament Panels you will need to add the Plugin to your Panel's configuration. This will register the plugin's resources with the Panel. All methods are optional, and will be read from the config file if not provided.
 
 ```php
@@ -75,11 +82,12 @@ public function panel(Panel $panel): Panel
                     ->navigationLabel('Media Library')
                     ->resource(MediaResource::class) // use FinnWiel\ShazzooMedia\Resources\MediaResource;
                     ->registerNavigation(true)
-                    ->navigationCountBadge(true)   
+                    ->navigationCountBadge(true)
             ])
 }
 ```
-___
+
+---
 
 ### Picker field
 
@@ -102,7 +110,9 @@ class CreatePost extends CreateRecord
     protected static string $resource = PostResource::class;
 }
 ```
-___
+
+---
+
 ### Conversions
 
 Conversions are set in `config/shazzoo_media.php` in the conversions array. To add or remove conversions change the array with the same structure.
@@ -128,12 +138,14 @@ So adding a new conversion called small would look like this:
 ],
 ```
 
-As you can see the existing conversions can also be edited, this can even be done when some conversions have already been made. Just be sure to run the ``` php artisan media:conversions:regenerate ``` command. This will regenerate the conversions to the new sizes.
-___
+As you can see the existing conversions can also be edited, this can even be done when some conversions have already been made. Just be sure to run the `php artisan media:conversions:regenerate` command. This will regenerate the conversions to the new sizes.
+
+---
+
 ### Artisan commands
 
-The Shazzoo Media plugin uses some artisan commands. 
-| Commands | Tags  | Uses |
+The Shazzoo Media plugin uses some artisan commands.
+| Commands | Tags | Uses |
 |--------------|----|-----------------------------------------------------------------------------------------|
 | `media:clear` | - | Clears your image files from the storage folder.|
 | `media:conversions:clear-db` | `id` | Clears conversion(s) in the database. |
@@ -142,7 +154,8 @@ The Shazzoo Media plugin uses some artisan commands.
 | `media:conversions:regenerate` | `id` `only`| Regenerates the conversions for the images. |
 | `media:conversions:list` | - | Lists out all image conversions |
 
-___
+---
+
 ### Policies & Tenancy
 
 #### Policies
@@ -159,10 +172,4 @@ This will publish a policy file to `App/Policies/MediaPolicy.php` the policy sho
 
 This package does not implement tenancy or user-based access control out of the box.
 
-If your application requires scoping media by tenant, team, or user, you are responsible for applying your own global scope to the `MediaExtended` model. This can be done by publishing the model and implementing it there, or you can add the global scope in the `AppServiceProvider.php`'s boot function. 
-
-
-
-
-
-
+If your application requires scoping media by tenant, team, or user, you are responsible for applying your own global scope to the `ShazzooMedia` model. This can be done by publishing the model and implementing it there, or you can add the global scope in the `AppServiceProvider.php`'s boot function.

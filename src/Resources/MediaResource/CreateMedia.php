@@ -6,7 +6,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
-use FinnWiel\ShazzooMedia\Models\MediaExtended;
+use FinnWiel\ShazzooMedia\Models\ShazzooMedia;
 use FinnWiel\ShazzooMedia\Resources\MediaResource;
 use FinnWiel\ShazzooMedia\Services\DuplicateChecker;
 
@@ -28,7 +28,7 @@ class CreateMedia extends CreateRecord
                 if (file_exists($fullPath)) {
                     $hash = md5_file($fullPath);
 
-                    if (MediaExtended::where('file_hash', $hash)->exists()) {
+                    if (ShazzooMedia::where('file_hash', $hash)->exists()) {
                         $this->form->fill([
                             'file' => null,
                         ]);

@@ -2,7 +2,7 @@
 
 namespace FinnWiel\ShazzooMedia\Commands;
 
-use FinnWiel\ShazzooMedia\Models\MediaExtended;
+use FinnWiel\ShazzooMedia\Models\ShazzooMedia;
 use Illuminate\Console\Command;
 
 class SetConversionDatabaseRecords extends Command
@@ -53,7 +53,7 @@ class SetConversionDatabaseRecords extends Command
         }
 
         if ($mediaId) {
-            $media = MediaExtended::find($mediaId);
+            $media = ShazzooMedia::find($mediaId);
 
             if (! $media) {
                 $this->error("❌ Media with ID {$mediaId} not found.");
@@ -63,7 +63,7 @@ class SetConversionDatabaseRecords extends Command
             $this->setConversions($media, $selected, $append);
             $this->info("✅ Set conversions for media ID {$mediaId}: " . implode(', ', $selected));
         } else {
-            $allMedia = MediaExtended::all();
+            $allMedia = ShazzooMedia::all();
 
             foreach ($allMedia as $media) {
                 $this->setConversions($media, $selected, $append);
@@ -75,7 +75,7 @@ class SetConversionDatabaseRecords extends Command
         return Command::SUCCESS;
     }
 
-    protected function setConversions(MediaExtended $media, array $newConversions, bool $append): void
+    protected function setConversions(ShazzooMedia $media, array $newConversions, bool $append): void
     {
         // Decode existing conversions safely
         $existing = json_decode($media->conversions ?? '[]', true) ?? [];

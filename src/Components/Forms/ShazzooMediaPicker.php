@@ -2,7 +2,7 @@
 
 namespace FinnWiel\ShazzooMedia\Components\Forms;
 
-use FinnWiel\ShazzooMedia\Models\MediaExtended;
+use FinnWiel\ShazzooMedia\Models\ShazzooMedia;
 use Awcodes\Curator\Components\Forms\CuratorPicker as CuratorPicker;
 use Filament\Forms\Components\Actions\Action;
 use Illuminate\Support\Facades\Artisan;
@@ -65,7 +65,7 @@ class ShazzooMediaPicker extends CuratorPicker
             }
             // Process each media ID for the field
             foreach ($mediaIds as $mediaId) {
-                $media = MediaExtended::find($mediaId);
+                $media = ShazzooMedia::find($mediaId);
 
                 if (!$media) {
                     continue;

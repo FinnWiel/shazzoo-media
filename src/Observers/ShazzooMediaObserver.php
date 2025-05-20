@@ -3,7 +3,7 @@
 namespace FinnWiel\ShazzooMedia\Observers;
 
 use FinnWiel\ShazzooMedia\Exceptions\DuplicateMediaException;
-use FinnWiel\ShazzooMedia\Models\MediaExtended as Media;
+use FinnWiel\ShazzooMedia\Models\ShazzooMedia;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -14,7 +14,7 @@ class ShazzooMediaObserver
     /**
      * Handle the Media "creating" event.
      */
-    public function creating(Media $media): void
+    public function creating(ShazzooMedia $media): void
     {
         if ($this->hasMediaUpload($media)) {
             foreach ($media->file as $k => $v) {
@@ -46,7 +46,7 @@ class ShazzooMediaObserver
 
                 if (config('shazzoo_media.check_duplicates') && $hash) {
                     // Check for existing file with the same hash
-                    $duplicate = Media::query()
+                    $duplicate = ShazzooMedia::query()
                         ->where('file_hash', $hash)
                         ->first();
 
@@ -69,7 +69,7 @@ class ShazzooMediaObserver
     /**
      * Handle the Media "updating" event.
      */
-    public function updating(Media $media): void
+    public function updating(ShazzooMedia $media): void
     {
         // Replace image
         if ($this->hasMediaUpload($media)) {
@@ -132,7 +132,7 @@ class ShazzooMediaObserver
         $media->__unset('originalFilename');
     }
 
-    public function deleted(Media $media): void
+    public function deleted(ShazzooMedia $media): void
     {
         $path = $media->path;
         $directory = trim($media->directory, '/');

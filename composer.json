@@ -1,27 +1,44 @@
 {
-    "name": "finnwiel/shazzoo-media",
-    "description": "A Laravel + Filament plugin extension for filament-curator. That adds conversions and new views.",
-    "type": "library",
-    "license": "MIT",
-    "autoload": {
-      "psr-4": {
-        "FinnWiel\\ShazzooMedia\\": "src/"
-      }
-    },
-    "require": {
-      "php": "^8.1",
-      "filament/filament": "^3.0",
-      "awcodes/filament-curator": "^3.0",
-      "spatie/laravel-package-tools": "^1.0"
-    },
-    "extra": {
-      "laravel": {
-        "providers": [
-          "FinnWiel\\ShazzooMedia\\ShazzooMediaServiceProvider"
-        ]
-      }
-    },
-    "minimum-stability": "stable",
-    "prefer-stable": true
-  }
-  
+  "name": "finnwiel/shazzoo-media",
+  "description": "A media library for Laravel",
+  "type": "library",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "FinnWiel\\ShazzooMedia\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "FinnWiel\\ShazzooMedia\\Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "test": "vendor/bin/phpunit"
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Finnwiel\\ShazzooMedia\\ShazzooMediaServiceProvider"
+      ]
+    }
+  },
+  "config": {
+    "sort-packages": true
+  },
+  "require": {
+    "php": "^8.1",
+    "illuminate/support": "^10.0",
+    "intervention/image": "^2.7",
+    "livewire/livewire": "^3.0",
+    "filament/filament": "^3.0",
+    "awcodes/filament-curator": "^3.0",
+    "spatie/laravel-package-tools": "^1.0"
+  },
+  "require-dev": {
+    "orchestra/testbench": "^8.0",
+    "phpunit/phpunit": "^10.0"
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
+}

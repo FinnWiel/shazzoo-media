@@ -24,20 +24,28 @@ class ShazzooMediaServerFactory implements ServerFactory
         $server->setCachePathCallable(function ($path, array $params) {
             $conversion = $params['conversion'] ?? 'default';
 
-            if($conversion === 'default') {
+            if ($conversion === 'default') {
                 return null;
             }
 
             $filename = pathinfo($path, PATHINFO_FILENAME);
-            $ext = strtolower($params['fm'] ?? config('shazzoo_media.default_extension'));
+            $ext = strtolower($params['fm'] ?? config('shazzoo_media.default_extension', 'webp'));
 
-            // Normalize extension 
+            // Normalize extension
             if ($ext === 'pjpg') {
                 $ext = 'jpg';
             }
 
-            return "public/conversions/{$filename}/{$filename}-{$conversion}.{$ext}";
+            // Try to extract the media ID from the path prefix: media/{id}/...
+            if (preg_match('#^media/(\d+)/#', $path, $matches)) {
+                $mediaId = $matches[1];
+            } else {
+                return null; // Fallback: don't generate a conversion
+            }
+
+            return "public/media/{$mediaId}/conversions/{$filename}-{$conversion}.{$ext}";
         });
+
 
         return $server;
     }

@@ -6,10 +6,6 @@ use FinnWiel\ShazzooMedia\Models\ShazzooMedia;
 use FinnWiel\ShazzooMedia\Tests\TestCase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\File;
-use Mockery;
 
 class ShazzooMediaTest extends TestCase
 {
@@ -22,12 +18,12 @@ class ShazzooMediaTest extends TestCase
     public function test_it_can_create_a_media_record()
     {
         $file = UploadedFile::fake()->image('test.jpg', 100, 100);
-        
+
         $media = ShazzooMedia::create([
             'name' => 'test.jpg',
-            'path' => 'test.jpg',
+            'path' => 'media/1/test.jpg',
             'disk' => 'public',
-            'directory' => 'media',
+            'directory' => 'media/1',
             'size' => $file->getSize(),
             'type' => 'image',
             'ext' => 'jpg',
@@ -43,10 +39,11 @@ class ShazzooMediaTest extends TestCase
     public function test_it_handles_conversion_urls()
     {
         $media = ShazzooMedia::create([
+            'id' => 1,
             'name' => 'test.jpg',
-            'path' => 'test.jpg',
+            'path' => 'media/1/test.jpg',
             'disk' => 'public',
-            'directory' => 'media',
+            'directory' => 'media/1',
             'size' => 1000,
             'type' => 'image',
             'ext' => 'jpg',
@@ -54,17 +51,14 @@ class ShazzooMediaTest extends TestCase
             'height' => 100,
         ]);
 
-        // Create a fake conversion file
-        Storage::disk('public')->put(
-            'conversions/test/test-thumbnail.webp',
-            'fake conversion content'
-        );
+        $conversionPath = 'media/1/conversions/test-thumbnail.webp';
 
-        // Test that the conversion URL is properly formatted
-        $this->assertStringContainsString('conversions/test/test-thumbnail.webp', $media->thumbnail_url);
+        Storage::disk('public')->put($conversionPath, 'fake conversion content');
 
-        // Test that it falls back to original URL when conversion doesn't exist
-        Storage::disk('public')->delete('conversions/test/test-thumbnail.webp');
+        $this->assertStringContainsString($conversionPath, $media->thumbnail_url);
+
+        Storage::disk('public')->delete($conversionPath);
+
         $this->assertEquals($media->url, $media->thumbnail_url);
     }
 
@@ -72,9 +66,9 @@ class ShazzooMediaTest extends TestCase
     {
         $media = ShazzooMedia::create([
             'name' => 'test.jpg',
-            'path' => 'test.jpg',
+            'path' => 'media/1/test.jpg',
             'disk' => 'public',
-            'directory' => 'media',
+            'directory' => 'media/1',
             'size' => '1000',
             'type' => 'image',
             'ext' => 'jpg',
@@ -96,10 +90,11 @@ class ShazzooMediaTest extends TestCase
     public function test_it_handles_dynamic_conversion_urls()
     {
         $media = ShazzooMedia::create([
+            'id' => 1,
             'name' => 'test.jpg',
-            'path' => 'test.jpg',
+            'path' => 'media/1/test.jpg',
             'disk' => 'public',
-            'directory' => 'media',
+            'directory' => 'media/1',
             'size' => 1000,
             'type' => 'image',
             'ext' => 'jpg',
@@ -107,23 +102,21 @@ class ShazzooMediaTest extends TestCase
             'height' => 100,
         ]);
 
-        // Create a fake conversion file
-        Storage::disk('public')->put(
-            'conversions/test/test-custom.webp',
-            'fake conversion content'
-        );
+        $conversionPath = 'media/1/conversions/test-custom.webp';
 
-        // Test dynamic conversion URL access
-        $this->assertStringContainsString('conversions/test/test-custom.webp', $media->custom_url);
+        Storage::disk('public')->put($conversionPath, 'fake conversion content');
+
+        $this->assertStringContainsString($conversionPath, $media->custom_url);
     }
 
     public function test_it_handles_missing_conversion_urls()
     {
         $media = ShazzooMedia::create([
+            'id' => 1,
             'name' => 'test.jpg',
-            'path' => 'test.jpg',
+            'path' => 'media/1/test.jpg',
             'disk' => 'public',
-            'directory' => 'media',
+            'directory' => 'media/1',
             'size' => 1000,
             'type' => 'image',
             'ext' => 'jpg',
@@ -131,17 +124,17 @@ class ShazzooMediaTest extends TestCase
             'height' => 100,
         ]);
 
-        // Test that non-existent conversion returns original URL
         $this->assertEquals($media->url, $media->nonexistent_conversion_url);
     }
 
     public function test_it_handles_file_deletion()
     {
         $media = ShazzooMedia::create([
+            'id' => 1,
             'name' => 'test.jpg',
-            'path' => 'test.jpg',
+            'path' => 'media/1/test.jpg',
             'disk' => 'public',
-            'directory' => 'media',
+            'directory' => 'media/1',
             'size' => 1000,
             'type' => 'image',
             'ext' => 'jpg',
@@ -149,18 +142,13 @@ class ShazzooMediaTest extends TestCase
             'height' => 100,
         ]);
 
-        // Create a fake conversion file
-        Storage::disk('public')->put(
-            'conversions/test/test-thumbnail.webp',
-            'fake conversion content'
-        );
+        Storage::disk('public')->put('media/1/test.jpg', 'fake file');
+        Storage::disk('public')->put('media/1/conversions/test-thumbnail.webp', 'fake conversion');
 
-        // Delete the media
         $media->delete();
 
-        // Verify the file and conversions are deleted
-        $this->assertFalse(Storage::disk('public')->exists('test.jpg'));
-        $this->assertFalse(Storage::disk('public')->exists('conversions/test/test-thumbnail.webp'));
+        $this->assertFalse(Storage::disk('public')->exists('media/1/test.jpg'));
+        $this->assertFalse(Storage::disk('public')->exists('media/1/conversions/test-thumbnail.webp'));
     }
 
     public function test_it_handles_exif_data()
@@ -173,9 +161,9 @@ class ShazzooMediaTest extends TestCase
 
         $media = ShazzooMedia::create([
             'name' => 'test.jpg',
-            'path' => 'test.jpg',
+            'path' => 'media/1/test.jpg',
             'disk' => 'public',
-            'directory' => 'media',
+            'directory' => 'media/1',
             'size' => 1000,
             'type' => 'image',
             'ext' => 'jpg',
@@ -187,4 +175,4 @@ class ShazzooMediaTest extends TestCase
         $this->assertEquals($exif, $media->exif);
         $this->assertEquals('Canon', $media->exif['Make']);
     }
-} 
+}

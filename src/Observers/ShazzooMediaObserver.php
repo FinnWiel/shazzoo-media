@@ -67,6 +67,26 @@ class ShazzooMediaObserver
     }
 
     /**
+     * Handle the Media "created" event.
+     */
+    public function created(ShazzooMedia $media): void
+    {
+        // Build new path: media_id/filename.ext (Spatie-style)
+        $newPath = "media/{$media->id}/{$media->name}.{$media->ext}";
+        $disk = Storage::disk($media->disk);
+
+        // Move the file if it exists at the original path
+        if ($disk->exists($media->path)) {
+            $disk->makeDirectory(dirname($newPath));
+            $disk->move($media->path, $newPath);
+
+            $media->path = $newPath;
+            $media->directory = "media/{$media->id}";
+            $media->save();
+        }
+    }
+
+    /**
      * Handle the Media "updating" event.
      */
     public function updating(ShazzooMedia $media): void
@@ -132,32 +152,33 @@ class ShazzooMediaObserver
         $media->__unset('originalFilename');
     }
 
+    /**
+     * Handle the Media "deleted" event.
+     */
     public function deleted(ShazzooMedia $media): void
     {
+        $disk = Storage::disk($media->disk);
         $path = $media->path;
         $directory = trim($media->directory, '/');
 
         // Delete the main media file
-        Storage::disk($media->disk)->delete($path);
+        if ($disk->exists($path)) {
+            $disk->delete($path);
+        }
 
-        // Safeguard directory cleanup
+        // Delete the conversions directory (Spatie-style: media/{id}/conversions/)
+        $conversionPath = "media/{$media->id}/conversions";
+        if ($disk->exists($conversionPath)) {
+            $disk->deleteDirectory($conversionPath);
+        }
+
+        // Clean up directory if empty, avoid deleting top-level dirs
         $protectedDirs = ['public', '', '.', '/', 'media', 'storage'];
 
         if (!in_array($directory, $protectedDirs, true)) {
-            $fileCount = count(Storage::disk($media->disk)->allFiles($directory));
-
+            $fileCount = count($disk->allFiles($directory));
             if ($fileCount === 0) {
-                Storage::disk($media->disk)->deleteDirectory($directory);
-            }
-        }
-
-        // ✅ Delete related Glide conversions folder by UUID
-        $uuid = pathinfo($media->path, PATHINFO_FILENAME);
-
-        if ($uuid && !Str::contains($uuid, ['/', '..'])) {
-            $conversionPath = "conversions/{$uuid}";
-            if (Storage::disk('public')->exists($conversionPath)) {
-                Storage::disk('public')->deleteDirectory($conversionPath);
+                $disk->deleteDirectory($directory);
             }
         }
     }

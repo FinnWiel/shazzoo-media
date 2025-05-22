@@ -41,7 +41,7 @@ class ShazzooMedia extends CuratorMedia
         $baseName = pathinfo($this->name, PATHINFO_FILENAME);
         $conversionConfig = config("shazzoo_media.conversions.{$conversion}", []);
         $ext = $conversionConfig['ext'] ?? config('shazzoo_media.conversion_ext', 'webp');
-        $conversionPath = "conversions/{$baseName}/{$baseName}-{$conversion}.{$ext}";
+        $conversionPath = "media/{$this->id}/conversions/{$baseName}-{$conversion}.{$ext}";
 
         if (!Storage::disk('public')->exists($conversionPath)) {
             return $this->url;

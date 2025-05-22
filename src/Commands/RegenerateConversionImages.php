@@ -94,7 +94,7 @@ class RegenerateConversionImages extends Command
             }
 
             // Build expected output path
-            $basePath = public_path("storage/conversions/{$image->name}/{$image->name}-{$conversion}");
+            $basePath = public_path("storage/media/{$image->id}/conversions/{$image->name}-{$conversion}");
             $matchingFiles = File::glob("{$basePath}.*");
 
             $outputPath = $matchingFiles[0] ?? null;

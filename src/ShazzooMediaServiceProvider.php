@@ -56,7 +56,7 @@ class ShazzooMediaServiceProvider extends PackageServiceProvider
         $this->loadViewsFrom(__DIR__ . '/../resources/views', 'curator');
         // $this->loadViewsFrom(__DIR__ . '/../resources/views/vendor/curator', 'curator');
         $this->publishes([
-            __DIR__ . '/Policies/.php.stub' => app_path('Policies/MediaPolicy.php'),
+            __DIR__ . '/Policies/MediaPolicy.php.stub' => app_path('Policies/MediaPolicy.php'),
         ], 'shazzoo-media-policy');
 
         // Set all changes for curator conifig to work with shazzoo media

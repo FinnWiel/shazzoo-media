@@ -21,6 +21,9 @@ A Laravel + Filament plugin that extends [Filament Curator](https://github.com/a
 
 ## Installation
 
+⚠️ **Important:** Before installing, make sure the GD extension is enabled in your php.ini.
+Without it, image conversions will fail and no thumbnails will be generated.
+
 You can install the package via composer then run the installation command:
 
 ```bash

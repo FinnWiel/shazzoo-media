@@ -19,7 +19,7 @@
   "extra": {
     "laravel": {
       "providers": [
-        "Finnwiel\\ShazzooMedia\\ShazzooMediaServiceProvider"
+        "FinnWiel\\ShazzooMedia\\ShazzooMediaServiceProvider"
       ]
     }
   },

@@ -45,7 +45,7 @@ Import the plugin's stylesheet and cropperjs' stylesheet into your theme's css f
 @import '<path-to-vendor>/awcodes/filament-curator/resources/css/plugin.css';
 ```
 
-Add the plugin's views to your `tailwind.config.js` file.
+Add the plugin's views to your custom theme's `tailwind.config.js` file.
 
 ```php
 content: [

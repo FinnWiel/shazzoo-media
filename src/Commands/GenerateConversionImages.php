@@ -72,26 +72,34 @@ class GenerateConversionImages extends Command
      */
     protected function generateImageCache(ShazzooMedia $image, ?string $only = null)
     {
+        if (empty($image->path)) {
+            logger()->warning("Skipping media ID {$image->id}: path is missing.");
+            return;
+        }
+
         $imagePath = storage_path('app/public/' . $image->path);
+        logger()->info("Processing media ID {$image->id}: path {$image->path}");
 
         if (!file_exists($imagePath)) {
+            logger()->warning("File does not exist for media ID {$image->id}: {$imagePath}");
             return;
         }
 
         $ext = strtolower($image->ext);
 
         if (in_array($ext, ['svg', 'pdf'])) {
-            return; // Skip SVG and PDF files
+            logger()->info("Skipping unsupported format '{$ext}' for media ID {$image->id}");
+            return;
         }
 
         $conversions = json_decode($image->conversions, true) ?? [];
 
         if (empty($conversions)) {
-            return; // No conversions to generate
+            logger()->info("No conversions found for media ID {$image->id}");
+            return;
         }
 
         foreach ($conversions as $conversion) {
-            // Skip conversions if --only is used
             if ($only && $conversion !== $only) {
                 continue;
             }
@@ -101,6 +109,7 @@ class GenerateConversionImages extends Command
             $defaultFormat = config('shazzoo_media.conversion_ext', 'webp');
 
             if (!$conversionConfig) {
+                logger()->warning("Conversion config missing for '{$conversion}'");
                 continue;
             }
 
@@ -112,8 +121,10 @@ class GenerateConversionImages extends Command
                     'fit' => $conversionConfig['fit'] ?? $defaultFit,
                     'fm' => $conversionConfig['ext'] ?? $defaultFormat,
                 ]);
+
+                logger()->info("Generated conversion '{$conversion}' for media ID {$image->id}");
             } catch (\Exception $e) {
-                //
+                logger()->error("Failed to generate conversion '{$conversion}' for media ID {$image->id}: " . $e->getMessage());
             }
         }
     }

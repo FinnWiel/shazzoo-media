@@ -3,6 +3,8 @@
 namespace FinnWiel\ShazzooMedia\Glide;
 
 use Awcodes\Curator\Glide\Contracts\ServerFactory;
+use League\Flysystem\Filesystem;
+use League\Flysystem\Local\LocalFilesystemAdapter;
 use League\Glide\Responses\SymfonyResponseFactory;
 use League\Glide\Server;
 use League\Glide\ServerFactory as GlideServerFactory;
@@ -11,12 +13,16 @@ class ShazzooMediaServerFactory implements ServerFactory
 {
     public function getFactory(): GlideServerFactory | Server
     {
+        $filesystem = new Filesystem(
+            new LocalFilesystemAdapter(storage_path('app'))
+        );
+
         $server = GlideServerFactory::create([
             'driver' => 'gd',
             'response' => new SymfonyResponseFactory(app('request')),
-            'source' => storage_path('app'),
+            'source' => $filesystem,
             'source_path_prefix' => 'public',
-            'cache' => storage_path('app'),
+            'cache' => $filesystem,
             'cache_path_prefix' => '.cache',
             'max_image_size' => 2000 * 2000,
         ]);

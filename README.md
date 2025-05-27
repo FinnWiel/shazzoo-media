@@ -69,6 +69,13 @@ php artisan vendor:publish --tag=shazzoo_media-config
 
 > **Note:** This plugin will also change some of curators settings, you can still manage curators setting but they may not work with Shazzoo Media
 
+
+To publish the plugins Model run: 
+
+```bash
+php artisan vendor:publish --tag=shazzoo-media-model
+```
+
 ---
 
 ### Filament Panels

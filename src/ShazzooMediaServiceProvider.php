@@ -65,7 +65,7 @@ class ShazzooMediaServiceProvider extends PackageServiceProvider
 
         // Set all changes for curator conifig to work with shazzoo media
         config()->set('curator.resources.resource', \FinnWiel\ShazzooMedia\Resources\MediaResource::class); // Resource
-        config()->set('curator.model', config_path('shazzoo_media.media')); // Model
+        config()->set('curator.model', config('shazzoo_media.model')); // Model
         config()->set('curator.glide.server', \FinnWiel\ShazzooMedia\Glide\ShazzooMediaServerFactory::class);
         config()->set('curator.glide.route_path', 'storage'); // Glide server
         config()->set('curator.tabs.display_curation', false); // Display curation tab

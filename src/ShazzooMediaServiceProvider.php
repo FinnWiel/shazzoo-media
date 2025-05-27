@@ -60,7 +60,7 @@ class ShazzooMediaServiceProvider extends PackageServiceProvider
         ], 'shazzoo-media-policy');
 
         $this->publishes([
-            __DIR__ . '/Models/ShazzooMedia.php' => app_path('Models/ShazzooMedia.php'),
+            __DIR__ . '/Models/ShazzooMedia.php.stub' => app_path('Models/ShazzooMedia.php'),
         ], 'shazzoo-media-model');
 
         // Set all changes for curator conifig to work with shazzoo media

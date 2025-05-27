@@ -1,11 +1,11 @@
 <?php
 
-namespace FinnWiel\ShazzooMedia\Models;
+namespace App\Models;
 
-use Awcodes\Curator\Models\Media as CuratorMedia;
 use Illuminate\Support\Facades\Storage;
+use FinnWiel\ShazzooMedia\Models\ShazzooMedia as BaseShazzooMedia;
 
-class ShazzooMedia extends CuratorMedia
+class ShazzooMedia extends BaseShazzooMedia
 {
 
     protected $table = 'media';

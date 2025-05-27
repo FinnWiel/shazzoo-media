@@ -17,6 +17,7 @@ return [
     |--------------------------------------------------------------------------
     */
     'media_policies' => false, 
+    'model' => \FinnWiel\ShazzooMedia\Models\ShazzooMedia::class, // Model to use for media
 
     /*
     |--------------------------------------------------------------------------

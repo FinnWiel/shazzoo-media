@@ -63,9 +63,16 @@ class ShazzooMediaServiceProvider extends PackageServiceProvider
             __DIR__ . '/Models/ShazzooMedia.php.stub' => app_path('Models/ShazzooMedia.php'),
         ], 'shazzoo-media-model');
 
+        // Set the model class based on the existence of the published model
+        if (class_exists('\App\Models\ShazzooMedia')) {
+            $modelClass = \App\Models\ShazzooMedia::class;
+        } else {
+            $modelClass = \FinnWiel\ShazzooMedia\Models\ShazzooMedia::class;
+        }
+
         // Set all changes for curator conifig to work with shazzoo media
         config()->set('curator.resources.resource', \FinnWiel\ShazzooMedia\Resources\MediaResource::class); // Resource
-        config()->set('curator.model', \FinnWiel\ShazzooMedia\Models\ShazzooMedia::class); // Model
+        config()->set('curator.model', $modelClass); // Model
         config()->set('curator.glide.server', \FinnWiel\ShazzooMedia\Glide\ShazzooMediaServerFactory::class);
         config()->set('curator.glide.route_path', 'storage'); // Glide server
         config()->set('curator.tabs.display_curation', false); // Display curation tab

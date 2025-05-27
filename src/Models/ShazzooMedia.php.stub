@@ -2,44 +2,14 @@
 
 namespace App\Models;
 
-use Illuminate\Support\Facades\Storage;
 use FinnWiel\ShazzooMedia\Models\ShazzooMedia as BaseShazzooMedia;
+
+/*
+* This class extends the base ShazzooMedia model to provide custom functionality
+* or overrides for the media management system.
+*/
 
 class ShazzooMedia extends BaseShazzooMedia
 {
-
-    protected $table = 'media';
-
-    protected $casts = [
-        'width' => 'integer',
-        'height' => 'integer',
-        'size' => 'integer',
-        'curations' => 'array',
-        'conversions' => 'array',
-        'exif' => 'array',
-    ];
-
-    public function __get($key)
-    {
-        if (str_ends_with($key, '_url')) {
-            $conversion = str_replace('_url', '', $key);
-            return $this->getConversionUrl($conversion);
-        }
-        return parent::__get($key);
-    }
-
-
-    protected function getConversionUrl(string $conversion): string
-    {
-        $baseName = pathinfo($this->name, PATHINFO_FILENAME);
-        $conversionConfig = config("shazzoo_media.conversions.{$conversion}", []);
-        $ext = $conversionConfig['ext'] ?? config('shazzoo_media.conversion_ext', 'webp');
-        $conversionPath = "media/{$this->id}/conversions/{$baseName}-{$conversion}.{$ext}";
-
-        if (!Storage::disk('public')->exists($conversionPath)) {
-            return $this->url;
-        }
-
-        return asset("storage/{$conversionPath}");
-    }
+    //
 }

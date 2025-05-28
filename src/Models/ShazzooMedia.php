@@ -31,10 +31,10 @@ class ShazzooMedia extends CuratorMedia
 
     protected function getConversionUrl(string $conversion): string
     {
-        $baseName = pathinfo($this->name, PATHINFO_FILENAME);
+        $filename = pathinfo(basename($this->path ?? $this->url), PATHINFO_FILENAME);
         $conversionConfig = config("shazzoo_media.conversions.{$conversion}", []);
         $ext = $conversionConfig['ext'] ?? config('shazzoo_media.conversion_ext', 'webp');
-        $conversionPath = "media/{$this->id}/conversions/{$baseName}-{$conversion}.{$ext}";
+        $conversionPath = "media/{$this->id}/conversions/{$filename}-{$conversion}.{$ext}";
 
         if (!Storage::disk('public')->exists($conversionPath)) {
             return $this->url;

@@ -156,6 +156,72 @@ As you can see the existing conversions can also be edited, this can even be don
 
 ---
 
+### Showing images
+
+To show images in your frontend using the `ShazzooMedia` model, you can leverage the built-in dynamic URL accessors for media conversions.
+
+For each image conversion defined in your config (shazzoo_media.conversions), a dynamic property is available on your media model:
+
+```php
+$image->thumbnail_url  // returns URL for the 'thumbnail' conversion
+$image->web_url        // returns URL for the 'web' conversion
+```
+
+If the conversion file exists, it returns the converted image URL. If not, it gracefully falls back to the original image URL.
+
+Example in blade:
+
+```blade
+<img src="{{ $media->thumbnail_url }}" alt="Thumbnail">
+```
+
+#### Defining relationships
+
+You are responsible for defining the relationship between your Eloquent models and the media records.
+
+#####  One-to-One Example:
+For a model that has a single media item, like a `Post` with a featured image:
+
+```php
+// In your Post.php model
+use FinnWiel\ShazzooMedia\Models\ShazzooMedia;
+
+public function featuredImage()
+{
+    return $this->belongsTo(ShazzooMedia::class, 'media_id');
+}
+```
+
+Usage:
+
+```blade
+<img src="{{ $post->featuredImage?->thumbnail_url }}" alt="Featured image">
+```
+
+#####  One-to-Many Example:
+For a model that has multiple images, like a `Product` with a gallery:
+
+```php
+// In your Product.php model
+use FinnWiel\ShazzooMedia\Models\ShazzooMedia;
+
+public function gallery()
+{
+    return $this->hasMany(ShazzooMedia::class, 'product_id');
+}
+```
+
+Usage:
+
+```blade
+@foreach($product->gallery as $image)
+    <img src="{{ $image->web_url }}" alt="Gallery image">
+@endforeach
+```
+
+
+---
+
 ### Artisan commands
 
 The Shazzoo Media plugin uses some artisan commands.

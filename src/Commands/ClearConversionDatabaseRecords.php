@@ -2,7 +2,6 @@
 
 namespace FinnWiel\ShazzooMedia\Commands;
 
-use FinnWiel\ShazzooMedia\Models\ShazzooMedia;
 use Illuminate\Console\Command;
 
 class ClearConversionDatabaseRecords extends Command
@@ -27,11 +26,12 @@ class ClearConversionDatabaseRecords extends Command
      */
     public function handle(): int
     {
+        $modelClass = config('shazzoo_media.model', \FinnWiel\ShazzooMedia\Models\ShazzooMedia::class);
         $mediaId = $this->option('id');
 
         if ($mediaId) {
-            $media = ShazzooMedia::find($mediaId);
-            if (! $media) {
+            $media = $modelClass::find($mediaId);
+            if (!$media) {
                 $this->error("❌ Media with ID {$mediaId} not found.");
                 return Command::FAILURE;
             }
@@ -39,14 +39,12 @@ class ClearConversionDatabaseRecords extends Command
             $media->conversions = [];
             $media->save();
 
-            $this->info("🧹 Cleared conversions for media ID {$mediaId}.");
-        } else {
-            $count = ShazzooMedia::whereNotNull('conversions')->count();
-            ShazzooMedia::query()->update(['conversions' => null]);
-            
-            $this->info("🧹 Cleared conversions for {$count} media items.");
+            $this->info("✅ Cleared conversions for media ID {$mediaId}.");
+            return Command::SUCCESS;
         }
 
+        $count = $modelClass::query()->update(['conversions' => json_encode([])]);
+        $this->info("✅ Cleared conversions for {$count} media items.");
         return Command::SUCCESS;
     }
 }

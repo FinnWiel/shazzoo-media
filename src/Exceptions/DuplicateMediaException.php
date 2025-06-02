@@ -3,19 +3,18 @@
 namespace FinnWiel\ShazzooMedia\Exceptions;
 
 use Exception;
-use FinnWiel\ShazzooMedia\Models\ShazzooMedia;
 
 class DuplicateMediaException extends Exception
 {
-    public ShazzooMedia $duplicate;
+    public object $duplicate;
 
-    public function __construct(ShazzooMedia $duplicate)
+    public function __construct(object $duplicate)
     {
         parent::__construct(trans('shazzoo_media::notifications.exeptions.duplicate.message'));
         $this->duplicate = $duplicate;
     }
 
-    public function getDuplicate(): ShazzooMedia
+    public function getDuplicate(): object
     {
         return $this->duplicate;
     }

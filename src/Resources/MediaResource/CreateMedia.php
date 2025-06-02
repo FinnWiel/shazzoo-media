@@ -20,6 +20,7 @@ class CreateMedia extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
+        $modelClass = config('shazzoo_media.model', ShazzooMedia::class);
         if (config('shazzoo_media.check_duplicates')) {
             if (isset($data['file']['path'])) {
                 $disk = $data['file']['disk'] ?? 'public';
@@ -28,7 +29,7 @@ class CreateMedia extends CreateRecord
                 if (file_exists($fullPath)) {
                     $hash = md5_file($fullPath);
 
-                    if (ShazzooMedia::where('file_hash', $hash)->exists()) {
+                    if ($modelClass::where('file_hash', $hash)->exists()) {
                         $this->form->fill([
                             'file' => null,
                         ]);

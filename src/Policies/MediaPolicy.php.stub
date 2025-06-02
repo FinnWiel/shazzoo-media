@@ -2,17 +2,22 @@
 
 namespace App\Policies;
 
-use FinnWiel\ShazzooMedia\Models\ShazzooMedia as Media;
 use App\Models\User;
 
 class MediaPolicy
 {
+    /**
+     * The Media model class is defined in config('shazzoo_media.model')
+     * 
+     * @param User $user
+     * @return bool
+     */
     public function viewAny(User $user): bool
     {
         return true;
     }
 
-    public function view(User $user, Media $media): bool
+    public function view(User $user, $media): bool
     {
         return true;
     }
@@ -22,12 +27,12 @@ class MediaPolicy
         return true;
     }
 
-    public function update(User $user, Media $media): bool
+    public function update(User $user, $media): bool
     {
         return true;
     }
 
-    public function delete(User $user, Media $media): bool
+    public function delete(User $user, $media): bool
     {
         return true;
     }
@@ -37,9 +42,8 @@ class MediaPolicy
         return true;
     }
 
-    public function download(User $user, Media $media): bool
+    public function download(User $user, $media): bool
     {
         return true;
     }
-    
 }

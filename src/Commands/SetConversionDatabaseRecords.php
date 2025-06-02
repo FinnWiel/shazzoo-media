@@ -2,7 +2,6 @@
 
 namespace FinnWiel\ShazzooMedia\Commands;
 
-use FinnWiel\ShazzooMedia\Models\ShazzooMedia;
 use Illuminate\Console\Command;
 
 class SetConversionDatabaseRecords extends Command
@@ -23,7 +22,6 @@ class SetConversionDatabaseRecords extends Command
      */
     protected $description = 'Interactively set conversion(s) in the database for one media item or all.';
 
-
     /**
      * Execute the console command.
      */
@@ -32,58 +30,56 @@ class SetConversionDatabaseRecords extends Command
         $mediaId = $this->option('id');
         $append = $this->option('append');
 
+        $modelClass = config('shazzoo_media.model', \FinnWiel\ShazzooMedia\Models\ShazzooMedia::class);
+
         // Get available conversion keys from config
         $available = array_keys(config('shazzoo_media.conversions') ?? []);
 
         if (empty($available)) {
-            $this->error('❌ No conversions are defined in config/shazzoo_media.php.');
+            $this->warn('⚠️  No conversions are defined in the config.');
             return Command::FAILURE;
         }
 
-        // Prompt user with checkbox list
         $selected = $this->choice(
-            '❓ Which conversions do you want to set?',
+            'Which conversions should be applied?',
             $available,
-            multiple: true
+            null,
+            null,
+            true // allow multiple selections
         );
 
-        if (empty($selected)) {
-            $this->warn('⚠️ No conversions selected. Aborting.');
-            return Command::SUCCESS;
-        }
-
         if ($mediaId) {
-            $media = ShazzooMedia::find($mediaId);
+            $media = $modelClass::find($mediaId);
 
             if (! $media) {
                 $this->error("❌ Media with ID {$mediaId} not found.");
                 return Command::FAILURE;
             }
 
-            $this->setConversions($media, $selected, $append);
-            $this->info("✅ Set conversions for media ID {$mediaId}: " . implode(', ', $selected));
-        } else {
-            $allMedia = ShazzooMedia::all();
+            $conversions = $append
+                ? array_merge(json_decode($media->conversions, true) ?? [], $selected)
+                : $selected;
 
-            foreach ($allMedia as $media) {
-                $this->setConversions($media, $selected, $append);
-            }
+            $media->conversions = json_encode(array_values(array_unique($conversions)));
+            $media->save();
 
-            $this->info("✅ Set conversions for all media: " . implode(', ', $selected));
+            $this->info("✅ Conversions updated for media ID {$mediaId}.");
+            return Command::SUCCESS;
         }
 
+        $modelClass::chunk(50, function ($items) use ($append, $selected) {
+            foreach ($items as $media) {
+                $conversions = $append
+                    ? array_merge(json_decode($media->conversions, true) ?? [], $selected)
+                    : $selected;
+
+                $media->conversions = json_encode(array_values(array_unique($conversions)));
+                $media->save();
+
+                $this->line("✅ Media ID {$media->id} updated.");
+            }
+        });
+
         return Command::SUCCESS;
-    }
-
-    protected function setConversions(ShazzooMedia $media, array $newConversions, bool $append): void
-    {
-        // Decode existing conversions safely
-        $existing = json_decode($media->conversions ?? '[]', true) ?? [];
-
-        $media->conversions = $append
-            ? json_encode(array_values(array_unique(array_merge($existing, $newConversions))))
-            : json_encode($newConversions);
-
-        $media->save();
     }
 }

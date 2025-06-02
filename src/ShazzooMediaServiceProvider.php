@@ -52,6 +52,7 @@ class ShazzooMediaServiceProvider extends PackageServiceProvider
 
     public function packageBooted(): void
     {
+        $modelClass = config('shazzoo_media.model', \FinnWiel\ShazzooMedia\Models\ShazzooMedia::class);
         // Use new views
         $this->loadViewsFrom(__DIR__ . '/../resources/views', 'curator');
         // $this->loadViewsFrom(__DIR__ . '/../resources/views/vendor/curator', 'curator');
@@ -65,7 +66,7 @@ class ShazzooMediaServiceProvider extends PackageServiceProvider
 
         // Set all changes for curator conifig to work with shazzoo media
         config()->set('curator.resources.resource', \FinnWiel\ShazzooMedia\Resources\MediaResource::class); // Resource
-        config()->set('curator.model', config('shazzoo_media.model')); // Model
+        config()->set('curator.model', $modelClass); // Model
         config()->set('curator.glide.server', \FinnWiel\ShazzooMedia\Glide\ShazzooMediaServerFactory::class);
         config()->set('curator.glide.route_path', 'storage'); // Glide server
         config()->set('curator.tabs.display_curation', false); // Display curation tab
@@ -78,7 +79,7 @@ class ShazzooMediaServiceProvider extends PackageServiceProvider
 
             if (File::exists($customPolicy)) {
                 Gate::policy(
-                    \FinnWiel\ShazzooMedia\Models\ShazzooMedia::class,
+                    $modelClass,
                     \App\Policies\MediaPolicy::class
                 );
             } else {
@@ -88,15 +89,15 @@ class ShazzooMediaServiceProvider extends PackageServiceProvider
             }
         }
 
-        $this->app->bind(Media::class, ShazzooMedia::class);
+        $this->app->bind(Media::class, $modelClass);
 
         if (app()->bound('livewire')) {
             Livewire::component('curator-panel', ShazzooMediaPanel::class);
         }
 
         // Register the Models observer
-        ShazzooMedia::flushEventListeners();
-        ShazzooMedia::observe(ShazzooMediaObserver::class);
+        $modelClass::flushEventListeners();
+        $modelClass::observe(ShazzooMediaObserver::class);
 
         // Load the views from the package instead of from curator
         View::prependNamespace('curator', __DIR__ . '/../resources/views');

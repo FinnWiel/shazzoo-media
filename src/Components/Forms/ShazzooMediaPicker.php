@@ -2,12 +2,9 @@
 
 namespace FinnWiel\ShazzooMedia\Components\Forms;
 
-use FinnWiel\ShazzooMedia\Models\ShazzooMedia;
 use Awcodes\Curator\Components\Forms\CuratorPicker as CuratorPicker;
 use Filament\Forms\Components\Actions\Action;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Log;
-use Filament\Support\Colors\Color;
 
 class ShazzooMediaPicker extends CuratorPicker
 {
@@ -53,28 +50,25 @@ class ShazzooMediaPicker extends CuratorPicker
      */
     public static function saveConversionsToMedia(array $formData): void
     {
-        // Iterate over each field and its conversions
-        foreach (static::$conversionRegistry as $field => $conversions) {
+        $modelClass = config('shazzoo_media.model', \FinnWiel\ShazzooMedia\Models\ShazzooMedia::class);
 
-            // Find all occurrences of the media ID for the current field (e.g., thumbnail_image)
+        foreach (static::$conversionRegistry as $field => $conversions) {
             $mediaIds = static::findValuesInNestedArray($formData, $field);
 
-            // If no media IDs are found, log a warning and continue
             if (empty($mediaIds)) {
                 continue;
             }
-            // Process each media ID for the field
+
             foreach ($mediaIds as $mediaId) {
-                $media = ShazzooMedia::find($mediaId);
+                $media = $modelClass::find($mediaId);
 
                 if (!$media) {
                     continue;
                 }
 
                 $existingConversions = json_decode($media->conversions, true) ?? [];
-
-                // Add only new conversions
                 $newConversions = array_diff($conversions, $existingConversions);
+
                 if (empty($newConversions)) {
                     continue;
                 }
@@ -83,7 +77,6 @@ class ShazzooMediaPicker extends CuratorPicker
 
                 $media->conversions = json_encode($mergedConversions);
                 $media->save();
-
 
                 Artisan::call('media:conversions:generate', ['--id' => $media->id]);
             }

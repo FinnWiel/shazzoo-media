@@ -3,10 +3,6 @@
 namespace FinnWiel\ShazzooMedia\Components\Forms;
 
 use Awcodes\Curator\Components\Forms\Uploader;
-use Filament\Http\Livewire\Auth\Login;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Log;
-use Intervention\Image\Facades\Image;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class ShazzooMediaUploader extends Uploader

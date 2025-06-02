@@ -3,7 +3,6 @@
 namespace FinnWiel\ShazzooMedia\Commands;
 
 use FinnWiel\ShazzooMedia\Glide\ShazzooMediaServerFactory;
-use FinnWiel\ShazzooMedia\Models\ShazzooMedia;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
@@ -18,7 +17,6 @@ class RegenerateConversionImages extends Command
     protected $signature = 'media:conversions:regenerate
                         {--id= : The ID of a single media item to regenerate}
                         {--only= : Only regenerate a specific conversion (e.g., thumbnail, medium)}';
-
 
     /**
      * The console command description.
@@ -38,88 +36,46 @@ class RegenerateConversionImages extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(): int
     {
-        $only = $this->option('only');
+        $modelClass = config('shazzoo_media.model', \FinnWiel\ShazzooMedia\Models\ShazzooMedia::class);
         $id = $this->option('id');
+        $only = $this->option('only');
 
         if ($id) {
-            $images = ShazzooMedia::where('id', $id)->get();
-            $this->info("🔁 Regenerating conversions for image ID: {$id}...");
-        } else {
-            $images = ShazzooMedia::all();
-            $this->info('🔁 Regenerating conversions for all images...');
+            $media = $modelClass::find($id);
+
+            if (! $media) {
+                $this->error("❌ Media with ID {$id} not found.");
+                return Command::FAILURE;
+            }
+
+            $this->regenerate($media, $only);
+            $this->info("✅ Regenerated conversions for media ID {$id}.");
+            return Command::SUCCESS;
         }
 
-        $this->output->progressStart($images->count());
-
-        foreach ($images as $image) {
-            $this->regenerateImageConversions($image, $only);
-            $this->output->progressAdvance();
-        }
-
-        $this->output->progressFinish();
-
-        $this->info('✅ Image conversion regeneration complete.');
-        return Command::SUCCESS;
+        $this->warn('⚠️  Please provide an --id. Bulk regeneration is not supported in this command.');
+        return Command::FAILURE;
     }
 
-    protected function regenerateImageConversions(ShazzooMedia $image, ?string $only = null)
+    protected function regenerate($media, $only = null): void
     {
-        $imagePath = storage_path('app/public/' . $image->path);
+        $conversions = json_decode($media->conversions, true) ?? [];
 
-        if (!file_exists($imagePath)) {
-            return;
+        $basePath = "conversions/{$media->name}";
+        if (File::exists(storage_path("app/public/{$basePath}"))) {
+            File::deleteDirectory(storage_path("app/public/{$basePath}"));
+            $this->line("🗑️  Deleted old conversions in '{$basePath}'");
         }
 
-        $ext = strtolower($image->ext);
-        if (in_array($ext, ['svg', 'pdf'])) {
-            return;
-        }
-
-        $conversions = json_decode($image->conversions, true) ?? [];
-        if (empty($conversions)) {
+        if ($only && in_array($only, $conversions)) {
+            $this->server->getImageResponse($media->path, ['p' => $only]);
             return;
         }
 
         foreach ($conversions as $conversion) {
-            if ($only && $conversion !== $only) {
-                continue;
-            }
-
-            $config = config('shazzoo_media.conversions.' . $conversion);
-            if (!$config) {
-                $this->warn(" ⚠️  Conversion '{$conversion}' is not defined in the config.");
-                continue;
-            }
-
-            // Build expected output path
-            $basePath = public_path("storage/media/{$image->id}/conversions/{$image->name}-{$conversion}");
-            $matchingFiles = File::glob("{$basePath}.*");
-
-            $outputPath = $matchingFiles[0] ?? null;
-
-            // Delete existing file if it exists
-            if (file_exists($outputPath)) {
-                unlink($outputPath);
-            }
-
-            $conversionConfig = config('shazzoo_media.conversions.' . $conversion);
-            $defaultFit = config('shazzoo_media.fit', 'max');
-            $defaultFormat = config('shazzoo_media.conversion_ext', 'webp');
-
-            try {
-                // Regenerate the image
-                $this->server->makeImage($image->path, [
-                    'conversion' => $conversion,
-                    'w' => $conversionConfig['width'] ?? null,
-                    'h' => $conversionConfig['height'] ?? null,
-                    'fit' => $conversionConfig['fit'] ?? $defaultFit,
-                    'fm' => $conversionConfig['ext'] ?? $defaultFormat,
-                ]);
-            } catch (\Exception $e) {
-                $this->error("❌ Error regenerating {$conversion} for {$image->name}: " . $e->getMessage());
-            }
+            $this->server->getImageResponse($media->path, ['p' => $conversion]);
         }
     }
 }

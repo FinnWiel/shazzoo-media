@@ -285,6 +285,9 @@ class ShazzooMediaPanel extends BaseCuratorPanel
         return $media;
     }
 
+    /**
+     * Set the media form based on the selected item.
+     */
     public function setMediaForm(): void
     {
         $first = Arr::first($this->selected);
@@ -301,6 +304,11 @@ class ShazzooMediaPanel extends BaseCuratorPanel
         $this->form->fill();
     }
 
+    /**
+     * Add a media item to the selection.
+     *
+     * @param int|string $id The ID of the media item to add.
+     */
     public function addToSelection(int|string $id): void
     {
         $item = $this->mediaClass->find($id);
@@ -324,6 +332,11 @@ class ShazzooMediaPanel extends BaseCuratorPanel
         $this->setMediaForm();
     }
 
+    /**
+     * Remove a media item from the selection.
+     *
+     * @param int|string $id The ID of the media item to remove.
+     */
     public function removeFromSelection(int|string $id): void
     {
         $this->selected = collect($this->selected)
@@ -334,8 +347,6 @@ class ShazzooMediaPanel extends BaseCuratorPanel
         $this->context = count($this->selected) === 1 ? 'edit' : 'create';
         $this->setMediaForm();
     }
-
-
 
 
     /**

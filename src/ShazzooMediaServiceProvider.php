@@ -101,7 +101,8 @@ class ShazzooMediaServiceProvider extends PackageServiceProvider
 
         // Load the views from the package instead of from curator
         View::prependNamespace('curator', __DIR__ . '/../resources/views');
-        // View::prependNamespace('curator', __DIR__ . '/../resources/views/vendor/curator');
+        View::prependNamespace('shazzoo_media', __DIR__ . '/../resources/views');
+        View::addNamespace('livewire', __DIR__ . '/../resources/views');
 
         FilamentAsset::register([
             Css::make('curator', base_path('vendor/awcodes/filament-curator/resources/dist/curator.css'))->loadedOnRequest(false),

@@ -18,9 +18,17 @@ use Filament\Notifications\Notification;
 use FinnWiel\ShazzooMedia\Components\Forms\ShazzooMediaUploader;
 use FinnWiel\ShazzooMedia\Exceptions\DuplicateMediaException;
 use Livewire\Attributes\On;
+use Livewire\WithPagination;
 
 class ShazzooMediaPanel extends BaseCuratorPanel
 {
+
+    use WithPagination;
+
+    protected string $paginationTheme = 'tailwind';
+    public int $page = 1;
+    protected $queryString = [];
+
     public array $files_to_add = [];
     public bool $keepOriginalSize = false;
     public ?Media $mediaClass = null;
@@ -44,8 +52,36 @@ class ShazzooMediaPanel extends BaseCuratorPanel
             return;
         }
 
+        // Only include what you actually use
         $this->keepOriginalSize = $settings['keepOriginalSize'] ?? false;
-        parent::openModal($id, $settings);
+        $this->acceptedFileTypes = $settings['acceptedFileTypes'] ?? [];
+        $this->defaultSort = $settings['defaultSort'] ?? 'desc';
+        $this->directory = $settings['directory'] ?? 'media';
+        $this->diskName = $settings['diskName'] ?? 'public';
+        $this->imageCropAspectRatio = $settings['imageCropAspectRatio'] ?? null;
+        $this->imageResizeMode = $settings['imageResizeMode'] ?? null;
+        $this->imageResizeTargetWidth = $settings['imageResizeTargetWidth'] ?? null;
+        $this->imageResizeTargetHeight = $settings['imageResizeTargetHeight'] ?? null;
+        $this->isLimitedToDirectory = $settings['isLimitedToDirectory'] ?? false;
+        $this->isMultiple = $settings['isMultiple'] ?? false;
+        $this->isTenantAware = $settings['isTenantAware'] ?? true;
+        $this->tenantOwnershipRelationshipName = $settings['tenantOwnershipRelationshipName'] ?? null;
+        $this->maxItems = $settings['maxItems'] ?? null;
+        $this->maxSize = $settings['maxSize'] ?? null;
+        $this->maxWidth = $settings['maxWidth'] ?? null;
+        $this->minSize = $settings['minSize'] ?? null;
+        $this->pathGenerator = $settings['pathGenerator'] ?? null;
+        $this->validationRules = $settings['rules'] ?? [];
+        $this->selected = (array) ($settings['selected'] ?? []);
+        $this->shouldPreserveFilenames = $settings['shouldPreserveFilenames'] ?? false;
+        $this->statePath = $settings['statePath'] ?? null;
+        $this->types = $settings['types'] ?? [];
+        $this->visibility = $settings['visibility'] ?? 'public';
+
+        // ❌ No $this->files assignment here
+        // ✅ Let render() handle the paginated loading
+
+        $this->form->fill();
     }
 
     /**
@@ -195,7 +231,7 @@ class ShazzooMediaPanel extends BaseCuratorPanel
                     $media = $this->createMediaFiles($this->form->getState());
 
                     $this->form->fill();
-                    $this->files = [...$media, ...$this->files];
+                    // $this->files = [...$media, ...$this->files];
 
                     if ($insertAfter) {
                         $this->dispatch('insert-content', type: 'media', statePath: $this->statePath, media: $media);
@@ -252,11 +288,34 @@ class ShazzooMediaPanel extends BaseCuratorPanel
         return $media;
     }
 
+    public function getPaginatedFiles()
+    {
+        $modelClass = config('shazzoo_media.model', \FinnWiel\ShazzooMedia\Models\ShazzooMedia::class);
+
+        return $modelClass::query()
+            ->when($this->search, fn($query) => $query->where('name', 'like', '%' . $this->search . '%'))
+            ->orderBy('created_at', 'desc')
+            ->paginate(config('shazzoo_media.pagination', 25), ['*'], 'page', $this->page);
+    }
+
+
+    public function paginationView(): string
+    {
+        return 'shazzoo_media::livewire.simple-pagination';
+    }
+
+    public function gotoPage($page, $pageName = 'page')
+    {
+        $this->page = $page;
+    }
+
     /**
      * @return View
      */
     public function render(): View
     {
-        return view('curator::components.modals.curator-panel');
+        return view('curator::components.modals.curator-panel', [
+            'paginatedFiles' => $this->getPaginatedFiles(),
+        ]);
     }
 }

@@ -30,14 +30,13 @@
             $wire.addToSelection(mediaId);
         }
     },
-    isSelected: function(mediaId = null) {
+    isSelected(mediaId = null) {
         if ($wire.selected.length === 0) return false;
 
         return Object.values($wire.selected).find(obj => obj.id == mediaId) !== undefined;
     },
 }" class="curator-panel h-full absolute inset-0 flex flex-col">
     <!-- Toolbar -->
-
     <div
         class="curator-panel-toolbar px-4 py-2 flex items-center justify-between bg-gray-200/70 dark:bg-black/20 dark:text-white">
         <div class="flex items-center gap-2">
@@ -45,11 +44,7 @@
                 x-show="$wire.selected.length > 1">
                 {{ trans('curator::views.panel.deselect_all') }}
             </x-filament::button>
-            @if ($currentPage < $lastPage)
-                <x-filament::button size="xs" color="gray" wire:click="loadMoreFiles()">
-                    {{ trans('curator::views.panel.load_more') }}
-                </x-filament::button>
-            @endif
+
             @if ($isMultiple)
                 <p class="text-xs" x-data="{ keyLabel: navigator.platform.toUpperCase().includes('MAC') ? 'Cmd' : 'Ctrl' }">
                     <span x-text="keyLabel"></span>
@@ -57,12 +52,13 @@
                 </p>
             @endif
         </div>
+
         <div class="w-full max-w-xs pl-8">
             <label
-                class="border border-gray-300 dark:border-gray-700 rounded-lg relative flex items-center w-full max-w-xs ">
+                class="border border-gray-300 dark:border-gray-700 rounded-lg relative flex items-center w-full max-w-xs">
                 <span class="sr-only">{{ trans('curator::views.panel.search_label') }}</span>
                 <x-filament::icon alias="curator::icons.check" icon="heroicon-s-magnifying-glass"
-                    class="w-4 h-4 absolute top-1.5 left-2 rtl:left-0 rtl:right-2 dark:text-gray-500 " />
+                    class="w-4 h-4 absolute top-1.5 left-2 rtl:left-0 rtl:right-2 dark:text-gray-500" />
                 <input type="search" placeholder="{{ trans('curator::views.panel.search_placeholder') }}"
                     wire:model.live.debounce.500ms="search"
                     class="block w-full transition text-sm py-1 !ps-8 !pe-3 duration-75 border-none focus:ring-1 focus:ring-inset focus:ring-primary-600 disabled:opacity-70 bg-transparent placeholder-gray-700 dark:placeholder-gray-400 rounded-lg" />
@@ -71,26 +67,25 @@
                     wire:target="search">
                     <path clip-rule="evenodd"
                         d="M12 19C15.866 19 19 15.866 19 12C19 8.13401 15.866 5 12 5C8.13401 5 5 8.13401 5 12C5 15.866 8.13401 19 12 19ZM12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                        fill-rule="evenodd" fill="currentColor" opacity="0.2"></path>
-                    <path d="M2 12C2 6.47715 6.47715 2 12 2V5C8.13401 5 5 8.13401 5 12H2Z" fill="currentColor"></path>
+                        fill-rule="evenodd" fill="currentColor" opacity="0.2" />
+                    <path d="M2 12C2 6.47715 6.47715 2 12 2V5C8.13401 5 5 8.13401 5 12H2Z" fill="currentColor" />
                 </svg>
             </label>
         </div>
-
     </div>
     <!-- End Toolbar -->
 
     <div class="flex-1 relative flex flex-col lg:flex-row overflow-hidden">
-
+        <div wire:loading.delay wire:target="gotoPage"
+            class="absolute inset-0 bg-white/60 dark:bg-black/60 z-50 flex items-center justify-center">
+            <div class="animate-spin h-6 w-6 border-4 border-primary-500 border-t-transparent rounded-full m-10"></div>
+        </div>
         <!-- Gallery -->
         <div class="curator-panel-gallery flex-1 h-full overflow-auto p-4">
             <ul class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
-                @forelse ($files as $file)
+                @forelse ($paginatedFiles as $file)
                     <li wire:key="media-{{ $file['id'] }}" class="relative aspect-square"
-                        x-bind:class="{
-                            'opacity-40': $wire.selected.length > 0 && !isSelected('{{ $file['id'] }}')
-                        }">
-
+                        x-bind:class="{ 'opacity-40': $wire.selected.length > 0 && !isSelected('{{ $file['id'] }}') }">
                         <button type="button" x-on:click="handleItemClick('{{ $file['id'] }}', $event)"
                             class="block w-full h-full overflow-hidden bg-gray-700 rounded-lg">
                             @if (str_contains($file['type'], 'image'))
@@ -126,9 +121,7 @@
                                 <x-filament::icon alias="curator::icons.check" icon="heroicon-s-check"
                                     class="w-4 h-4" />
                             </span>
-                            <span class="sr-only">
-                                {{ trans('curator::views.panel.deselect') }}
-                            </span>
+                            <span class="sr-only">{{ trans('curator::views.panel.deselect') }}</span>
                         </button>
                     </li>
                 @empty
@@ -137,6 +130,12 @@
                     </li>
                 @endforelse
             </ul>
+
+            <div class="mt-4 flex justify-center">
+                {{ $paginatedFiles->links() }}
+            </div>
+
+
         </div>
         <!-- End Gallery -->
 
@@ -154,9 +153,7 @@
                     <div class="flex-1 px-4 pb-4">
                         <div class="h-full">
                             <div class="mb-4 mt-px">
-
                                 {{ $this->form }}
-
                             </div>
                             <x-filament-actions::modals />
                         </div>
@@ -183,7 +180,6 @@
                             </div>
                         @endif
                     </div>
-
                 </div>
             </div>
         </div>

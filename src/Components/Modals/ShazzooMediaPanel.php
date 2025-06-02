@@ -285,6 +285,58 @@ class ShazzooMediaPanel extends BaseCuratorPanel
         return $media;
     }
 
+    public function setMediaForm(): void
+    {
+        $first = Arr::first($this->selected);
+
+        if (is_array($first) && isset($first['id'])) {
+            $item = $this->mediaClass->find($first['id']);
+
+            if ($item) {
+                $this->form->fill($item->toArray());
+                return;
+            }
+        }
+
+        $this->form->fill();
+    }
+
+    public function addToSelection(int|string $id): void
+    {
+        $item = $this->mediaClass->find($id);
+
+        if (!$item) {
+            return;
+        }
+
+        $itemArray = $item->toArray();
+
+        if ($this->isMultiple) {
+            // Prevent duplicates
+            if (!collect($this->selected)->contains('id', $itemArray['id'])) {
+                $this->selected[] = $itemArray;
+            }
+        } else {
+            $this->selected = [$itemArray];
+        }
+
+        $this->context = count($this->selected) === 1 ? 'edit' : 'create';
+        $this->setMediaForm();
+    }
+
+    public function removeFromSelection(int|string $id): void
+    {
+        $this->selected = collect($this->selected)
+            ->filter(fn($item) => isset($item['id']) && $item['id'] != $id)
+            ->values()
+            ->all();
+
+        $this->context = count($this->selected) === 1 ? 'edit' : 'create';
+        $this->setMediaForm();
+    }
+
+
+
 
     /**
      * Get paginated files based on search criteria.

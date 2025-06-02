@@ -10,6 +10,7 @@ class ShazzooMediaPicker extends CuratorPicker
 {
     protected static array $conversionRegistry = [];
     public bool $keepOriginalSize = false;
+    protected bool $onlySvg = false;
 
     /**
      * Register conversions for the field.
@@ -82,6 +83,14 @@ class ShazzooMediaPicker extends CuratorPicker
             }
         }
     }
+
+    public function svgOnly(bool $enable = true): static
+    {
+        $this->onlySvg = $enable;
+        $this->acceptedFileTypes(['image/svg+xml']);
+        return $this;
+    }
+
 
     /**
      * Helper method to search for values in a nested array by key.

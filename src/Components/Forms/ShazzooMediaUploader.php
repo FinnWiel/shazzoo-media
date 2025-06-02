@@ -53,7 +53,7 @@ class ShazzooMediaUploader extends Uploader
         }
 
         $maxWidth = config('shazzoo_media.max_image_width', 1000);
-        $maxHeight = config('shazzoo_media.max_image_height', 1000); 
+        $maxHeight = config('shazzoo_media.max_image_height', 1000);
 
         $ratio = min($maxWidth / $width, $maxHeight / $height, 1);
 

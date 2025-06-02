@@ -78,9 +78,6 @@ class ShazzooMediaPanel extends BaseCuratorPanel
         $this->types = $settings['types'] ?? [];
         $this->visibility = $settings['visibility'] ?? 'public';
 
-        // ❌ No $this->files assignment here
-        // ✅ Let render() handle the paginated loading
-
         $this->form->fill();
     }
 
@@ -288,22 +285,37 @@ class ShazzooMediaPanel extends BaseCuratorPanel
         return $media;
     }
 
+
+    /**
+     * Get paginated files based on search criteria.
+     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
+     */
     public function getPaginatedFiles()
     {
         $modelClass = config('shazzoo_media.model', \FinnWiel\ShazzooMedia\Models\ShazzooMedia::class);
 
         return $modelClass::query()
             ->when($this->search, fn($query) => $query->where('name', 'like', '%' . $this->search . '%'))
+            ->when(!empty($this->types), fn($query) => $query->whereIn('type', $this->types))
             ->orderBy('created_at', 'desc')
             ->paginate(config('shazzoo_media.pagination', 25), ['*'], 'page', $this->page);
     }
 
 
+    /**
+     * Get the view for pagination.
+     */
     public function paginationView(): string
     {
         return 'shazzoo_media::livewire.simple-pagination';
     }
 
+    /**
+     * Go to a specific page in the pagination.
+     *
+     * @param int $page The page number to go to.
+     * @param string $pageName The name of the page parameter (default is 'page').
+     */
     public function gotoPage($page, $pageName = 'page')
     {
         $this->page = $page;

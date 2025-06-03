@@ -87,17 +87,20 @@ class ShazzooMediaPicker extends CuratorPicker
     /**
      * Set the accepted file types for the media picker.
      *
-     * @param string|null $types The file types to accept.
+     * @param string|array|null $types The file type group(s) to accept.
      * @return static
      */
-    public function fileType(string|null $type = null): static
+    public function fileType(string|array|null $types = null): static
     {
-        if (is_null($type)) {
+        if (is_null($types)) {
+            // Accept all file types (no restrictions)
             $this->acceptedFileTypes([]);
             return $this;
         }
 
-        $types = match ($type) {
+        $types = (array) $types; // Ensure it's always an array
+
+        $groupMap = [
             'image' => ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
             'icon' => ['image/svg+xml'],
             'document' => [
@@ -105,13 +108,19 @@ class ShazzooMediaPicker extends CuratorPicker
                 'application/msword',
                 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             ],
-            default => [],
-        };
+        ];
 
-        $this->acceptedFileTypes($types);
+        $accepted = collect($types)
+            ->flatMap(fn($type) => $groupMap[$type] ?? [])
+            ->unique()
+            ->values()
+            ->all();
+
+        $this->acceptedFileTypes($accepted);
 
         return $this;
     }
+
 
 
     /**

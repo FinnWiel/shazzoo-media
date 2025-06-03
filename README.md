@@ -109,10 +109,20 @@ public function panel(Panel $panel): Panel
 
 Shazzoo Media adds a conversions method to the picker field, this method accepts an array. The conversions will subsequently be set in the database for each array item. Shazzoo Media will also create the conversion image.
 
+The picker also has a fileType method, this accepts the following strings: 'image', 'icon', 'document'. 
+
+| Commands | Tags | 
+|--------------|----|
+| `image` | `jpeg` `png`, `webp`, `gif` |
+| `icon` | `svg` |
+| `document` | `pdf` `docx` | 
+
 ```php
-ShazzooMediaCuratorPicker::make('featured_image_id')
-                    ->conversions(['thumbnail']),
+ShazzooMediaPicker::make('featured_image_id')
+                    ->conversions(['thumbnail'])
+                    ->fileType(), // 'image', 'icon', 'document'
 ```
+
 
 To generate actually set the conversions in the database you need to add a trait to the create and edit classes of your resource.
 

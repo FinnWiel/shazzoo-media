@@ -76,6 +76,8 @@ To publish the plugins Model run:
 php artisan vendor:publish --tag=shazzoo-media-model
 ```
 
+**Important:** When publishing the model make sure to also change the model in the config.
+
 ---
 
 ### Filament Panels

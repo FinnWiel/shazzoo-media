@@ -72,6 +72,16 @@ class ShazzooMediaServiceProvider extends PackageServiceProvider
         config()->set('curator.tabs.display_curation', false); // Display curation tab
         config()->set('curator.tabs.display_upload_new', false); // Display upload new tab
         config()->set('curator.multi_select_key', 'ctrlKey'); // Multi select key
+        config()->set('curator.accepted_file_types', [
+            'image/jpeg',
+            'image/png',
+            'image/webp',
+            'image/gif',
+            'image/svg+xml',
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ]);
 
         // Register the MediaPolicy if it exists in the config
         if (config('shazzoo_media.media_policies')) {

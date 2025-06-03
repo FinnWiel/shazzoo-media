@@ -84,10 +84,32 @@ class ShazzooMediaPicker extends CuratorPicker
         }
     }
 
-    public function svgOnly(bool $enable = true): static
+    /**
+     * Set the accepted file types for the media picker.
+     *
+     * @param string|null $types The file types to accept.
+     * @return static
+     */
+    public function fileType(string|null $type = null): static
     {
-        $this->onlySvg = $enable;
-        $this->acceptedFileTypes(['image/svg+xml']);
+        if (is_null($type)) {
+            $this->acceptedFileTypes([]);
+            return $this;
+        }
+
+        $types = match ($type) {
+            'image' => ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
+            'icon' => ['image/svg+xml'],
+            'document' => [
+                'application/pdf',
+                'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            ],
+            default => [],
+        };
+
+        $this->acceptedFileTypes($types);
+
         return $this;
     }
 

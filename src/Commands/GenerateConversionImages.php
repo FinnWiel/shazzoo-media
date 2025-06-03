@@ -69,6 +69,11 @@ class GenerateConversionImages extends Command
 
     protected function generateConversions($media, $only = null): void
     {
+        if (!str_starts_with($media->mime_type, 'image/')) {
+            $this->warn("⚠️  Skipping media ID {$media->id} (MIME: {$media->mime_type}) – not an image.");
+            return;
+        }
+
         $conversions = json_decode($media->conversions, true) ?? [];
 
         if ($only && in_array($only, $conversions)) {

@@ -3,6 +3,12 @@
   "description": "A media library for Laravel",
   "type": "library",
   "license": "MIT",
+    "authors": [
+    {
+      "name": "Finn van de Wiel",
+      "email": "finnvandewiel01@gmail.com"
+    }
+  ],
   "autoload": {
     "psr-4": {
       "FinnWiel\\ShazzooMedia\\": "src/"

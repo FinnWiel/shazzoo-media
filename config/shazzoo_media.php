@@ -10,6 +10,7 @@ return [
     'max_image_height' => 1000, 
     'max_image_width' => 1000, 
     'check_duplicates' => false,
+    'max_size' => 51200, // Max file size in KB (50MB)
 
     /*
     |--------------------------------------------------------------------------

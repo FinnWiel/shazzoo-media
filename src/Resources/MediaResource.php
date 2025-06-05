@@ -162,7 +162,6 @@ class MediaResource extends BaseMediaResource
             ->preserveFilenames(config('curator.should_preserve_filenames'))
             ->visibility(config('curator.visibility'))
             ->storeFileNamesIn('originalFilename')
-            ->image()
             ->imageEditor()
             ->imageEditorAspectRatios([
                 null,

@@ -72,15 +72,34 @@ class ShazzooMediaServiceProvider extends PackageServiceProvider
         config()->set('curator.tabs.display_curation', false); // Display curation tab
         config()->set('curator.tabs.display_upload_new', false); // Display upload new tab
         config()->set('curator.multi_select_key', 'ctrlKey'); // Multi select key
+        config()->set('curator.max_size', config('shazzoo_media.max_size')); // Max file size in KB
         config()->set('curator.accepted_file_types', [
-            'image/jpeg',
-            'image/png',
-            'image/webp',
-            'image/gif',
-            'image/svg+xml',
-            'application/pdf',
-            'application/msword',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            // Images
+            'image/jpeg',  // .jpg, .jpeg
+            'image/png',   // .png
+            'image/webp',  // .webp
+            'image/gif',   // .gif
+            'image/svg+xml', // .svg
+
+            // Documents
+            'application/pdf',  // .pdf
+            'application/msword', // .doc
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+            'application/vnd.openxmlformats-officedocument.presentationml.presentation', // .pptx
+            'application/vnd.ms-powerpoint', // .ppt
+            'text/csv',  // .csv
+            'application/json', // .json
+
+            // Video
+            'video/mp4',  // .mp4
+            'video/quicktime',  // .mov
+
+            // Audio
+            'audio/mpeg',  // .mp3
+            'audio/wav',   // .wav
+
+            // Flash
+            'application/x-shockwave-flash',  // .swf
         ]);
 
         // Register the MediaPolicy if it exists in the config

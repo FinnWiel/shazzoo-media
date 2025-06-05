@@ -93,12 +93,11 @@ class ShazzooMediaPicker extends CuratorPicker
     public function fileType(string|array|null $types = null): static
     {
         if (is_null($types)) {
-            // Accept all file types (no restrictions)
             $this->acceptedFileTypes([]);
             return $this;
         }
 
-        $types = (array) $types; // Ensure it's always an array
+        $types = (array) $types;
 
         $groupMap = [
             'image' => ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
@@ -107,8 +106,19 @@ class ShazzooMediaPicker extends CuratorPicker
                 'application/pdf',
                 'application/msword',
                 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                'application/vnd.ms-powerpoint',
             ],
+            'video' => ['video/mp4', 'video/quicktime'],
+            'audio' => ['audio/mpeg', 'audio/wav'],
+            'flash' => ['application/x-shockwave-flash'],
+            'all' => [], 
         ];
+
+        if (in_array('all', $types, true)) {
+            $this->acceptedFileTypes([]); // Accept all
+            return $this;
+        }
 
         $accepted = collect($types)
             ->flatMap(fn($type) => $groupMap[$type] ?? [])
@@ -120,6 +130,7 @@ class ShazzooMediaPicker extends CuratorPicker
 
         return $this;
     }
+
 
 
 

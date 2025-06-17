@@ -136,8 +136,17 @@ class ShazzooMediaPanel extends BaseCuratorPanel
                     ...collect(App::make(MediaResource::class)->getAdditionalInformationFormSchema())
                         ->map(function ($field) use ($modelClass) {
                             return $field->disabled(function () use ($modelClass) {
-                                $media = $modelClass::find($this->selected)->first();
-                                return !Gate::allows('update', $media);
+                                // If policies are disabled, default to enabled fields
+                                if (!config('shazzoo_media.media_policies')) {
+                                    return false; // Fields are enabled
+                                }
+                                
+                                $first = Arr::first($this->selected);
+                                if (is_array($first) && isset($first['id'])) {
+                                    $media = $modelClass::find($first['id']);
+                                    return !Gate::allows('update', $media);
+                                }
+                                return true; // Default to disabled if no selection
                             });
                         })->toArray(),
                 ])->visible(fn() => filled($this->selected) && count($this->selected) === 1),

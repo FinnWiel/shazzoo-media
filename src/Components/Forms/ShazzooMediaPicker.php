@@ -30,7 +30,7 @@ class ShazzooMediaPicker extends CuratorPicker
     public function getEditAction(): Action
     {
         return Action::make('edit')
-            ->label('bonk')
+            ->label('Edit')
             ->icon('heroicon-s-pencil')
             ->color('gray')
             ->visible(function (CuratorPicker $component) {

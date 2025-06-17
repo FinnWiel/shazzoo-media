@@ -160,12 +160,12 @@
 
                                 @include('curator::components.forms.edit-preview', [
                                     'file' => $file,
-                                    'actions' => [
+                                    'actions' => array_filter([
                                         $this->viewAction(),
                                         $this->downloadAction(),
-                                        $this->convertAction(),
+                                        str_starts_with($file['type'], 'image/') && !str_starts_with($file['type'], 'image/svg+xml') ? $this->convertAction() : null,
                                         $this->destroyAction(),
-                                    ],
+                                    ]),
                                 ])
                             @endif
 

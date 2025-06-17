@@ -412,6 +412,7 @@ class ShazzooMediaPanel extends BaseCuratorPanel
         $modelClass = config('shazzoo_media.model', \FinnWiel\ShazzooMedia\Models\ShazzooMedia::class);
 
         return $modelClass::query()
+            ->whereNull('model_type')
             ->when($this->search, fn($query) => $query->where('name', 'like', '%' . $this->search . '%'))
             ->when(!empty($this->types), fn($query) => $query->whereIn('type', $this->types))
             ->orderBy('created_at', 'desc')

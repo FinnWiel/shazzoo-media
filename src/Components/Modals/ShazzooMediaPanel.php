@@ -14,9 +14,13 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Gate;
 use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use FinnWiel\ShazzooMedia\Components\Forms\ShazzooMediaUploader;
 use FinnWiel\ShazzooMedia\Exceptions\DuplicateMediaException;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\On;
 use Livewire\WithPagination;
 
@@ -78,7 +82,7 @@ class ShazzooMediaPanel extends BaseCuratorPanel
         $this->types = $settings['types'] ?? [];
         $this->visibility = $settings['visibility'] ?? 'public';
 
-        $this->form->fill();
+        $this->setMediaForm();
     }
 
     /**
@@ -124,15 +128,6 @@ class ShazzooMediaPanel extends BaseCuratorPanel
                     ->storeFileNamesIn('originalFilenames')
                     ->keepOriginalSize($this->keepOriginalSize),
                 Group::make([
-                    FormView::make('preview')
-                        ->view('curator::components.forms.edit-preview', [
-                            'file' => Arr::first($this->selected),
-                            'actions' => [
-                                $this->viewAction(),
-                                $this->downloadAction(),
-                                $this->destroyAction(),
-                            ],
-                        ]),
                     ...collect(App::make(MediaResource::class)->getAdditionalInformationFormSchema())
                         ->map(function ($field) use ($modelClass) {
                             return $field->disabled(function () use ($modelClass) {
@@ -140,7 +135,7 @@ class ShazzooMediaPanel extends BaseCuratorPanel
                                 if (!config('shazzoo_media.media_policies')) {
                                     return false; // Fields are enabled
                                 }
-                                
+
                                 $first = Arr::first($this->selected);
                                 if (is_array($first) && isset($first['id'])) {
                                     $media = $modelClass::find($first['id']);
@@ -329,7 +324,6 @@ class ShazzooMediaPanel extends BaseCuratorPanel
         $itemArray = $item->toArray();
 
         if ($this->isMultiple) {
-            // Prevent duplicates
             if (!collect($this->selected)->contains('id', $itemArray['id'])) {
                 $this->selected[] = $itemArray;
             }
@@ -356,6 +350,57 @@ class ShazzooMediaPanel extends BaseCuratorPanel
         $this->context = count($this->selected) === 1 ? 'edit' : 'create';
         $this->setMediaForm();
     }
+
+    public function convertAction(): Action
+    {
+        return Action::make('convert')
+            ->icon('heroicon-o-arrows-pointing-in')
+            ->iconButton()
+            ->extraAttributes([
+                'style' => 'border: none; margin: 0;',
+            ])
+            ->form([
+                Select::make('conversion')
+                    ->label('Select Conversion')
+                    ->options($this->getConversionOptions())
+                    ->required(),
+            ])
+            ->action(function (array $data, array $arguments): void {
+                $conversion = $data['conversion'];
+                $mediaItem = $arguments['item'] ?? null;
+
+                if (!$mediaItem) {
+                    Notification::make()->danger()->title('No media selected')->send();
+                    return;
+                }
+
+                $mediaId = $mediaItem['id'];
+
+                // Call the Artisan command directly with options
+                Artisan::call('media:conversions:set-db', [
+                    '--id' => $mediaId,
+                    '--conversion' => $conversion,
+                    '--append' => true,
+                ]);
+
+                Artisan::call('media:conversions:generate', [
+                    '--id' => $mediaId,
+                    '--only' => $conversion,
+                ]);
+
+                Notification::make()->success()->title("Conversion '$conversion' added")->send();
+            });
+    }
+
+    protected function getConversionOptions(): array
+    {
+        $conversions = config('shazzoo_media.conversions', []);
+
+        return collect($conversions)->mapWithKeys(function ($settings, $name) {
+            return [$name => ucfirst($name)];
+        })->toArray();
+    }
+
 
 
     /**

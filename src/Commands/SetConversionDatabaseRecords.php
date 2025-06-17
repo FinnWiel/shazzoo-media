@@ -12,7 +12,8 @@ class SetConversionDatabaseRecords extends Command
      * @var string
      */
     protected $signature = 'media:conversions:set-db 
-                        {--id= : Media ID to update (omit for all)} 
+                        {--id= : Media ID to update (omit for all)}
+                        {--conversion= : The conversion(s) to apply (comma-separated if multiple)} 
                         {--append : Add to existing conversions instead of overwriting}';
 
     /**
@@ -29,10 +30,9 @@ class SetConversionDatabaseRecords extends Command
     {
         $mediaId = $this->option('id');
         $append = $this->option('append');
+        $conversionOption = $this->option('conversion');
 
         $modelClass = config('shazzoo_media.model', \FinnWiel\ShazzooMedia\Models\ShazzooMedia::class);
-
-        // Get available conversion keys from config
         $available = array_keys(config('shazzoo_media.conversions') ?? []);
 
         if (empty($available)) {
@@ -40,13 +40,17 @@ class SetConversionDatabaseRecords extends Command
             return Command::FAILURE;
         }
 
-        $selected = $this->choice(
-            'Which conversions should be applied?',
-            $available,
-            null,
-            null,
-            true // allow multiple selections
-        );
+        if ($conversionOption) {
+            $selected = explode(',', $conversionOption);
+        } else {
+            $selected = $this->choice(
+                'Which conversions should be applied?',
+                $available,
+                null,
+                null,
+                true
+            );
+        }
 
         if ($mediaId) {
             $media = $modelClass::find($mediaId);

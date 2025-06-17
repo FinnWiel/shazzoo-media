@@ -3,6 +3,7 @@
 namespace FinnWiel\ShazzooMedia\Glide;
 
 use Awcodes\Curator\Glide\Contracts\ServerFactory;
+use Illuminate\Support\Facades\Log;
 use League\Flysystem\Filesystem;
 use League\Flysystem\Local\LocalFilesystemAdapter;
 use League\Glide\Responses\SymfonyResponseFactory;
@@ -28,6 +29,10 @@ class ShazzooMediaServerFactory implements ServerFactory
         ]);
 
         $server->setCachePathCallable(function ($path, array $params) {
+            Log::info('Glide CachePathCallable invoked.', [
+                'path' => $path,
+                'params' => $params,
+            ]);
             $conversion = $params['conversion'] ?? 'default';
 
             if ($conversion === 'default') {

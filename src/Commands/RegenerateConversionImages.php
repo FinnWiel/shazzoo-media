@@ -70,12 +70,12 @@ class RegenerateConversionImages extends Command
         }
 
         if ($only && in_array($only, $conversions)) {
-            $this->server->getImageResponse($media->path, ['p' => $only]);
+            $this->server->getImageResponse($media->path, ['conversions' => $only]);
             return;
         }
 
         foreach ($conversions as $conversion) {
-            $this->server->getImageResponse($media->path, ['p' => $conversion]);
+            $this->server->getImageResponse($media->path, ['conversions' => $conversion]);
         }
     }
 }

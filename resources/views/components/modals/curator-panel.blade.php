@@ -152,9 +152,27 @@
 
                     <div class="flex-1 px-4 pb-4">
                         <div class="h-full">
+
+                            @if (count($selected) === 1)
+                                @php
+                                    $file = Arr::first($selected);
+                                @endphp
+
+                                @include('curator::components.forms.edit-preview', [
+                                    'file' => $file,
+                                    'actions' => [
+                                        $this->viewAction(),
+                                        $this->downloadAction(),
+                                        $this->convertAction(),
+                                        $this->destroyAction(),
+                                    ],
+                                ])
+                            @endif
+
                             <div class="mb-4 mt-px">
                                 {{ $this->form }}
                             </div>
+
                             <x-filament-actions::modals />
                         </div>
                     </div>

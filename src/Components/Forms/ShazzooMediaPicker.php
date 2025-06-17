@@ -12,6 +12,65 @@ class ShazzooMediaPicker extends CuratorPicker
     public bool $keepOriginalSize = false;
     protected bool $onlySvg = false;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->registerActions([
+            fn(CuratorPicker $component): Action => $component->getDownloadAction(),
+            fn(CuratorPicker $component): Action => $this->getEditAction(),
+            fn(CuratorPicker $component): Action => $component->getRemoveAction(),
+            fn(CuratorPicker $component): Action => $component->getRemoveAllAction(),
+            fn(CuratorPicker $component): Action => $component->getReorderAction(),
+            fn(CuratorPicker $component): Action => $component->getViewAction(),
+            fn(CuratorPicker $component): Action => $component->getPickerAction(),
+        ]);
+    }
+
+    public function getEditAction(): Action
+    {
+        return Action::make('edit')
+            ->label('bonk')
+            ->icon('heroicon-s-pencil')
+            ->color('gray')
+            ->visible(function (CuratorPicker $component) {
+                return true;
+            })
+            ->action(function (CuratorPicker $component, \Livewire\Component $livewire) {
+                // Get the current image to keep it selected in the picker
+                $state = $component->getState();
+                $selectedKey = array_key_first($state);
+                $selectedItem = $state[$selectedKey] ?? null;
+
+                $livewire->dispatch('open-modal', id: 'curator-panel', settings: [
+                    'acceptedFileTypes' => $component->getAcceptedFileTypes(),
+                    'defaultSort' => $component->getDefaultPanelSort(),
+                    'directory' => $component->getDirectory(),
+                    'diskName' => $component->getDiskName(),
+                    'imageCropAspectRatio' => $component->getImageCropAspectRatio(),
+                    'imageResizeMode' => $component->getImageResizeMode(),
+                    'imageResizeTargetWidth' => $component->getImageResizeTargetWidth(),
+                    'imageResizeTargetHeight' => $component->getImageResizeTargetHeight(),
+                    'isLimitedToDirectory' => $component->isLimitedToDirectory(),
+                    'isTenantAware' => $component->isTenantAware(),
+                    'tenantOwnershipRelationshipName' => $component->tenantOwnershipRelationshipName(),
+                    'isMultiple' => $component->isMultiple(),
+                    'maxItems' => $component->getMaxItems(),
+                    'maxSize' => $component->getMaxSize(),
+                    'maxWidth' => $component->getMaxWidth(),
+                    'minSize' => $component->getMinSize(),
+                    'pathGenerator' => $component->getPathGenerator(),
+                    'rules' => $component->getValidationRules(),
+                    'selected' => $selectedItem ? [0 => $selectedItem] : [],
+                    'shouldPreserveFilenames' => $component->shouldPreserveFilenames(),
+                    'statePath' => $component->getStatePath(),
+                    'types' => $component->getAcceptedFileTypes(),
+                    'visibility' => $component->getVisibility(),
+                    'keepOriginalSize' => $this->shouldKeepOriginalSize(),
+                ]);
+            });
+    }
+
     /**
      * Register conversions for the field.
      *
@@ -112,7 +171,7 @@ class ShazzooMediaPicker extends CuratorPicker
             'video' => ['video/mp4', 'video/quicktime'],
             'audio' => ['audio/mpeg', 'audio/wav'],
             'flash' => ['application/x-shockwave-flash'],
-            'all' => [], 
+            'all' => [],
         ];
 
         if (in_array('all', $types, true)) {

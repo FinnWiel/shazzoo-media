@@ -102,6 +102,8 @@ class ShazzooMediaServiceProvider extends PackageServiceProvider
             'application/x-shockwave-flash',  // .swf
         ]);
 
+        ///test
+
         // Register the MediaPolicy if it exists in the config
         if (config('shazzoo_media.media_policies')) {
             $customPolicy = app_path('Policies/MediaPolicy.php');

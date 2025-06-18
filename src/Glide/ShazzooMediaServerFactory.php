@@ -25,7 +25,7 @@ class ShazzooMediaServerFactory implements ServerFactory
             'source_path_prefix' => 'public',
             'cache' => $filesystem,
             'cache_path_prefix' => '.cache',
-            'max_image_size' => 2000 * 2000,
+            // 'max_image_size' => 2000 * 2000,
         ]);
 
         $server->setCachePathCallable(function ($path, array $params) {

@@ -8,6 +8,7 @@ use Filament\Support\Facades\FilamentAsset;
 use Livewire\Livewire;
 use FinnWiel\ShazzooMedia\Commands\ClearConversionDatabaseRecords;
 use FinnWiel\ShazzooMedia\Commands\ClearMedia;
+use FinnWiel\ShazzooMedia\Commands\ClearMediaConversions;
 use FinnWiel\ShazzooMedia\Commands\GenerateConversionImages;
 use FinnWiel\ShazzooMedia\Commands\ListConversionDefinitions;
 use FinnWiel\ShazzooMedia\Commands\RegenerateConversionImages;
@@ -38,6 +39,7 @@ class ShazzooMediaServiceProvider extends PackageServiceProvider
             ->hasCommands([
                 ClearConversionDatabaseRecords::class,
                 ClearMedia::class,
+                ClearMediaConversions::class,
                 GenerateConversionImages::class,
                 ListConversionDefinitions::class,
                 RegenerateConversionImages::class,

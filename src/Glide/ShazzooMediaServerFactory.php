@@ -40,7 +40,7 @@ class ShazzooMediaServerFactory implements ServerFactory
             }
 
             $filename = pathinfo($path, PATHINFO_FILENAME);
-            $ext = strtolower($params['fm'] ?? config('shazzoo_media.default_extension', 'webp'));
+            $ext = strtolower($params['fm'] ?? config('shazzoo_media.conversion_ext', 'webp'));
 
             // Normalize extension
             if ($ext === 'pjpg') {

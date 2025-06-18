@@ -70,19 +70,42 @@ class GenerateConversionImages extends Command
     protected function generateConversions($media, $only = null): void
     {
         if (!str_starts_with($media->type, 'image/')) {
-            $this->warn("⚠️  Skipping media ID {$media->id} (MIME: {$media->type}) – not an image.");
+            $this->warn("⚠️  Skipping media ID {$media->id} (MIME: {$media->type}) not an image.");
             return;
         }
 
         $conversions = json_decode($media->conversions, true) ?? [];
 
-        if ($only && in_array($only, $conversions)) {
-            $this->server->getImageResponse($media->path, ['conversion' => $only]);
+        if (empty($conversions)) {
             return;
         }
 
         foreach ($conversions as $conversion) {
-            $this->server->getImageResponse($media->path, ['conversion' => $conversion]);
+            // Skip conversions if --only is used
+            if ($only && $conversion !== $only) {
+                continue;
+            }
+
+            $conversionConfig = config("shazzoo_media.conversions.{$conversion}", []);
+            $defaultFit = config('shazzoo_media.fit', 'max');
+            $defaultFormat = config('shazzoo_media.conversion_ext', 'webp');
+
+            if (empty($conversionConfig)) {
+                $this->warn("⚠️  No conversion config found for '{$conversion}'");
+                continue;
+            }
+
+            try {
+                $this->server->makeImage($media->path, [
+                    'conversion' => $conversion,
+                    'w' => $conversionConfig['width'] ?? null,
+                    'h' => $conversionConfig['height'] ?? null,
+                    'fit' => $conversionConfig['fit'] ?? $defaultFit,
+                    'fm' => $conversionConfig['ext'] ?? $defaultFormat,
+                ]);
+            } catch (\Exception $e) {
+                $this->warn("⚠️  Failed to generate conversion '{$conversion}' for media ID {$media->id}: " . $e->getMessage());
+            }
         }
     }
 }

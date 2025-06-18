@@ -240,6 +240,7 @@ The Shazzoo Media plugin uses some artisan commands.
 | Commands | Tags | Uses |
 |--------------|----|-----------------------------------------------------------------------------------------|
 | `media:clear` | - | Clears your image files from the storage folder.|
+| `media:clear-conversions` | - | Clears your image conversion files from the storage folder.|
 | `media:conversions:clear-db` | `id` | Clears conversion(s) in the database. |
 | `media:conversions:set-db` | `id` `append` | Sets conversion(s) in the databse. |
 | `media:conversions:generate` | `id` `all` `only`| Generates the conversions for the images. |

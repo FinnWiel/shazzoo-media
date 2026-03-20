@@ -55,7 +55,7 @@
                 $ring . ' ring-white dark:ring-gray-900' => $imageCount > 1,
             ])
         >
-            @if (\Awcodes\Curator\is_media_resizable($item->type))
+            @if (is_media_resizable($item->ext))
                 @php
                     $img_width = $width ? (int)$width : null;
                     $img_height = $height ? (int)$height : null;

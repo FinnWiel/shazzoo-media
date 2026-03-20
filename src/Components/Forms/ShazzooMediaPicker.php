@@ -6,12 +6,12 @@ use Awcodes\Curator\Components\Forms\CuratorPicker;
 use Filament\Actions\Action;
 use Filament\Support\Components\Attributes\ExposedLivewireMethod;
 use Filament\Support\Enums\Width;
+use Filament\Support\Icons\Heroicon;
 use FinnWiel\ShazzooMedia\Models\ShazzooMedia;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Str;
-use Livewire\Component;
 
 class ShazzooMediaPicker extends CuratorPicker
 {
@@ -39,46 +39,60 @@ class ShazzooMediaPicker extends CuratorPicker
     public function getEditAction(): Action
     {
         return Action::make('edit')
-            ->label('Edit')
-            ->icon('heroicon-s-pencil')
+            ->label(trans('curator::views.picker.edit'))
+            ->icon(Heroicon::Pencil)
             ->color('gray')
-            ->visible(function (CuratorPicker $component) {
-                return true;
-            })
-            ->action(function (CuratorPicker $component, Component $livewire) {
-                // Get the current image to keep it selected in the picker
-                $state = $component->getState();
-                $selectedKey = array_key_first($state);
-                $selectedItem = $state[$selectedKey] ?? null;
+            ->hidden(fn (CuratorPicker $component): bool => $component->isDisabled())
+            ->modalSubmitAction(false)
+            ->modalCancelAction(false)
+            ->modalWidth(Width::SevenExtraLarge)
+            ->modalCloseButton(true)
+            ->modalContent(function (CuratorPicker $component, array $arguments): View {
                 $directory = $component->getDirectory() ?? config('shazzoo_media.directory', 'media');
+                $selected = (array) $component->getState();
 
-                $livewire->dispatch('open-modal', id: 'curator-panel', settings: [
-                    'acceptedFileTypes' => $component->getAcceptedFileTypes(),
-                    'defaultSort' => $component->getDefaultPanelSort(),
-                    'directory' => $directory,
-                    'diskName' => $component->getDiskName(),
-                    'imageCropAspectRatio' => $component->getImageCropAspectRatio(),
-                    'imageResizeMode' => $component->getImageResizeMode(),
-                    'imageResizeTargetWidth' => $component->getImageResizeTargetWidth(),
-                    'imageResizeTargetHeight' => $component->getImageResizeTargetHeight(),
-                    'isLimitedToDirectory' => $component->isLimitedToDirectory(),
-                    'isTenantAware' => $component->isTenantAware(),
-                    'tenantOwnershipRelationshipName' => $component->getTenantOwnershipRelationshipName(),
-                    'isMultiple' => $component->isMultiple(),
-                    'maxItems' => $component->getMaxItems(),
-                    'maxSize' => $component->getMaxSize(),
-                    'maxWidth' => $component->getMaxWidth(),
-                    'minSize' => $component->getMinSize(),
-                    'pathGenerator' => $component->getPathGenerator(),
-                    'rules' => $component->getValidationRules(),
-                    'selected' => $selectedItem ? [0 => $selectedItem] : [],
-                    'shouldPreserveFilenames' => $component->shouldPreserveFilenames(),
-                    'statePath' => $component->getStatePath(),
-                    'types' => $component->getAcceptedFileTypes(),
-                    'visibility' => $component->getVisibility(),
-                    'keepOriginalSize' => $this->shouldKeepOriginalSize(),
+                if (isset($arguments['id'])) {
+                    $modelClass = config('shazzoo_media.model', ShazzooMedia::class);
+                    $selectedMedia = $modelClass::query()->find($arguments['id']);
+
+                    if ($selectedMedia) {
+                        $selected = [
+                            (string) Str::uuid() => $selectedMedia->toArray(),
+                        ];
+                    }
+                }
+
+                return view('curator::components.modals.curator-panel', [
+                    'key' => $component->getKey(),
+                    'settings' => [
+                        'acceptedFileTypes' => $component->getAcceptedFileTypes(),
+                        'defaultSort' => $component->getDefaultPanelSort(),
+                        'directory' => $directory,
+                        'diskName' => $component->getDiskName(),
+                        'imageCropAspectRatio' => $component->getImageCropAspectRatio(),
+                        'imageResizeMode' => $component->getImageResizeMode(),
+                        'imageResizeTargetWidth' => $component->getImageResizeTargetWidth(),
+                        'imageResizeTargetHeight' => $component->getImageResizeTargetHeight(),
+                        'isLimitedToDirectory' => $component->isLimitedToDirectory(),
+                        'isTenantAware' => $component->isTenantAware(),
+                        'tenantOwnershipRelationshipName' => $component->getTenantOwnershipRelationshipName(),
+                        'isMultiple' => $component->isMultiple(),
+                        'maxItems' => $component->getMaxItems(),
+                        'maxSize' => $component->getMaxSize(),
+                        'maxWidth' => $component->getMaxWidth(),
+                        'minSize' => $component->getMinSize(),
+                        'pathGenerator' => $component->getPathGenerator(),
+                        'rules' => $component->getValidationRules(),
+                        'selected' => $selected,
+                        'shouldPreserveFilenames' => $component->shouldPreserveFilenames(),
+                        'statePath' => $component->getStatePath(),
+                        'types' => $component->getAcceptedFileTypes(),
+                        'visibility' => $component->getVisibility(),
+                        'keepOriginalSize' => $this->shouldKeepOriginalSize(),
+                    ],
                 ]);
-            });
+            })
+            ->action(fn (): null => null);
     }
 
     #[ExposedLivewireMethod]

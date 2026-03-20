@@ -38,10 +38,6 @@ php artisan shazzoo_media:install
 
 > **Note:** This plugin will install Curator for you, but you still need to set up your Filament panel theme.
 
-```bash
-npm install -D cropperjs
-```
-
 Import Curator's stylesheet in your Filament panel theme CSS file.
 
 ```css

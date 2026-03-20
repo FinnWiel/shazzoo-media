@@ -46,6 +46,8 @@ class ShazzooMediaPanel extends BaseCuratorPanel
 
         parent::mount();
 
+        $this->setMediaForm();
+
         if (blank($this->directory)) {
             $this->directory = config('shazzoo_media.directory', 'media');
         }

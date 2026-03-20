@@ -35,7 +35,7 @@
             />
         @endif
 
-        <div class="absolute top-0 right-0 flex bg-gray-900 divide-x divide-gray-700 rounded-bl-lg shadow-md">
+        <div class="curator-preview-actions absolute top-0 right-0 flex items-center bg-gray-900 rounded-bl-lg shadow-md overflow-hidden">
             @foreach ($actions as $action)
                 {{ ($action)(['item' => $file]) }}
             @endforeach

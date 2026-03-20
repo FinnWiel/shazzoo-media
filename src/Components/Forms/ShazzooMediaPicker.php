@@ -2,14 +2,23 @@
 
 namespace FinnWiel\ShazzooMedia\Components\Forms;
 
-use Awcodes\Curator\Components\Forms\CuratorPicker as CuratorPicker;
-use Filament\Forms\Components\Actions\Action;
+use Awcodes\Curator\Components\Forms\CuratorPicker;
+use Filament\Actions\Action;
+use Filament\Support\Components\Attributes\ExposedLivewireMethod;
+use Filament\Support\Enums\Width;
+use FinnWiel\ShazzooMedia\Models\ShazzooMedia;
+use Illuminate\Contracts\View\View;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Str;
+use Livewire\Component;
 
 class ShazzooMediaPicker extends CuratorPicker
 {
     protected static array $conversionRegistry = [];
+
     public bool $keepOriginalSize = false;
+
     protected bool $onlySvg = false;
 
     protected function setUp(): void
@@ -17,13 +26,13 @@ class ShazzooMediaPicker extends CuratorPicker
         parent::setUp();
 
         $this->registerActions([
-            fn(CuratorPicker $component): Action => $component->getDownloadAction(),
-            fn(CuratorPicker $component): Action => $this->getEditAction(),
-            fn(CuratorPicker $component): Action => $component->getRemoveAction(),
-            fn(CuratorPicker $component): Action => $component->getRemoveAllAction(),
-            fn(CuratorPicker $component): Action => $component->getReorderAction(),
-            fn(CuratorPicker $component): Action => $component->getViewAction(),
-            fn(CuratorPicker $component): Action => $component->getPickerAction(),
+            fn (CuratorPicker $component): Action => $component->getDownloadAction(),
+            fn (CuratorPicker $component): Action => $this->getEditAction(),
+            fn (CuratorPicker $component): Action => $component->getRemoveAction(),
+            fn (CuratorPicker $component): Action => $component->getRemoveAllAction(),
+            fn (CuratorPicker $component): Action => $component->getReorderAction(),
+            fn (CuratorPicker $component): Action => $component->getViewAction(),
+            fn (CuratorPicker $component): Action => $component->getPickerAction(),
         ]);
     }
 
@@ -36,16 +45,17 @@ class ShazzooMediaPicker extends CuratorPicker
             ->visible(function (CuratorPicker $component) {
                 return true;
             })
-            ->action(function (CuratorPicker $component, \Livewire\Component $livewire) {
+            ->action(function (CuratorPicker $component, Component $livewire) {
                 // Get the current image to keep it selected in the picker
                 $state = $component->getState();
                 $selectedKey = array_key_first($state);
                 $selectedItem = $state[$selectedKey] ?? null;
+                $directory = $component->getDirectory() ?? config('shazzoo_media.directory', 'media');
 
                 $livewire->dispatch('open-modal', id: 'curator-panel', settings: [
                     'acceptedFileTypes' => $component->getAcceptedFileTypes(),
                     'defaultSort' => $component->getDefaultPanelSort(),
-                    'directory' => $component->getDirectory(),
+                    'directory' => $directory,
                     'diskName' => $component->getDiskName(),
                     'imageCropAspectRatio' => $component->getImageCropAspectRatio(),
                     'imageResizeMode' => $component->getImageResizeMode(),
@@ -53,7 +63,7 @@ class ShazzooMediaPicker extends CuratorPicker
                     'imageResizeTargetHeight' => $component->getImageResizeTargetHeight(),
                     'isLimitedToDirectory' => $component->isLimitedToDirectory(),
                     'isTenantAware' => $component->isTenantAware(),
-                    'tenantOwnershipRelationshipName' => $component->tenantOwnershipRelationshipName(),
+                    'tenantOwnershipRelationshipName' => $component->getTenantOwnershipRelationshipName(),
                     'isMultiple' => $component->isMultiple(),
                     'maxItems' => $component->getMaxItems(),
                     'maxSize' => $component->getMaxSize(),
@@ -71,11 +81,42 @@ class ShazzooMediaPicker extends CuratorPicker
             });
     }
 
+    #[ExposedLivewireMethod]
+    public function updateState(array $arguments): void
+    {
+        if (isset($arguments[0]) && is_array($arguments[0])) {
+            $arguments = $arguments[0];
+        }
+
+        $media = $arguments['media'] ?? [];
+
+        if (is_array($media) && Arr::isAssoc($media) && array_key_exists('id', $media)) {
+            $media = [$media];
+        }
+
+        $items = [];
+
+        $state = array_values(is_array($media) ? $media : []);
+
+        foreach ($state as $itemData) {
+            if (! is_array($itemData)) {
+                continue;
+            }
+
+            if (! array_key_exists('id', $itemData)) {
+                continue;
+            }
+
+            $items[(string) Str::uuid()] = $itemData;
+        }
+
+        $this->state($items);
+    }
+
     /**
      * Register conversions for the field.
      *
-     * @param array $data The conversions to register.
-     * @return static
+     * @param  array  $data  The conversions to register.
      */
     public function conversions(array $data): static
     {
@@ -94,7 +135,7 @@ class ShazzooMediaPicker extends CuratorPicker
     /**
      * Get the conversions for a specific field.
      *
-     * @param string $field The field name to get conversions for.
+     * @param  string  $field  The field name to get conversions for.
      * @return array The conversions associated with the field.
      */
     public static function getConversionsFor(string $field): array
@@ -105,12 +146,11 @@ class ShazzooMediaPicker extends CuratorPicker
     /**
      * Save conversions to media based on the provided form data.
      *
-     * @param array $formData The form data containing media IDs.
-     * @return void
+     * @param  array  $formData  The form data containing media IDs.
      */
     public static function saveConversionsToMedia(array $formData): void
     {
-        $modelClass = config('shazzoo_media.model', \FinnWiel\ShazzooMedia\Models\ShazzooMedia::class);
+        $modelClass = config('shazzoo_media.model', ShazzooMedia::class);
 
         foreach (static::$conversionRegistry as $field => $conversions) {
             $mediaIds = static::findValuesInNestedArray($formData, $field);
@@ -122,7 +162,7 @@ class ShazzooMediaPicker extends CuratorPicker
             foreach ($mediaIds as $mediaId) {
                 $media = $modelClass::find($mediaId);
 
-                if (!$media) {
+                if (! $media) {
                     continue;
                 }
 
@@ -146,13 +186,13 @@ class ShazzooMediaPicker extends CuratorPicker
     /**
      * Set the accepted file types for the media picker.
      *
-     * @param string|array|null $types The file type group(s) to accept.
-     * @return static
+     * @param  string|array|null  $types  The file type group(s) to accept.
      */
     public function fileType(string|array|null $types = null): static
     {
         if (is_null($types)) {
             $this->acceptedFileTypes([]);
+
             return $this;
         }
 
@@ -176,11 +216,12 @@ class ShazzooMediaPicker extends CuratorPicker
 
         if (in_array('all', $types, true)) {
             $this->acceptedFileTypes([]); // Accept all
+
             return $this;
         }
 
         $accepted = collect($types)
-            ->flatMap(fn($type) => $groupMap[$type] ?? [])
+            ->flatMap(fn ($type) => $groupMap[$type] ?? [])
             ->unique()
             ->values()
             ->all();
@@ -190,14 +231,11 @@ class ShazzooMediaPicker extends CuratorPicker
         return $this;
     }
 
-
-
-
     /**
      * Helper method to search for values in a nested array by key.
      *
-     * @param array $data The array to search.
-     * @param string $key The key to search for.
+     * @param  array  $data  The array to search.
+     * @param  string  $key  The key to search for.
      * @return array The values associated with the key, or an empty array if not found.
      */
     protected static function findValuesInNestedArray(array $data, string $key): array
@@ -218,12 +256,10 @@ class ShazzooMediaPicker extends CuratorPicker
         return $results;
     }
 
-
     /**
      * Set the state path for the component.
      *
-     * @param string $statePath The state path to set.
-     * @return static
+     * @param  string  $statePath  The state path to set.
      */
     public function keepOriginalSize(bool $value = false): static
     {
@@ -244,45 +280,53 @@ class ShazzooMediaPicker extends CuratorPicker
 
     /**
      * Get the action to open the Curator picker.
-     *
-     * @return Action
      */
     public function getPickerAction(): Action
     {
-        return Action::make('open_curator_picker')
+        return Action::make('launchPanel')
             ->label(trans('shazzoo_media::views.picker.select'))
             ->button()
             ->size('md')
             ->color('primary')
             ->icon('heroicon-s-photo')
             ->outlined(true)
-            ->action(function (CuratorPicker $component, \Livewire\Component $livewire) {
-                $livewire->dispatch('open-modal', id: 'curator-panel', settings: [
-                    'acceptedFileTypes' => $component->getAcceptedFileTypes(),
-                    'defaultSort' => $component->getDefaultPanelSort(),
-                    'directory' => $component->getDirectory(),
-                    'diskName' => $component->getDiskName(),
-                    'imageCropAspectRatio' => $component->getImageCropAspectRatio(),
-                    'imageResizeMode' => $component->getImageResizeMode(),
-                    'imageResizeTargetWidth' => $component->getImageResizeTargetWidth(),
-                    'imageResizeTargetHeight' => $component->getImageResizeTargetHeight(),
-                    'isLimitedToDirectory' => $component->isLimitedToDirectory(),
-                    'isTenantAware' => $component->isTenantAware(),
-                    'tenantOwnershipRelationshipName' => $component->tenantOwnershipRelationshipName(),
-                    'isMultiple' => $component->isMultiple(),
-                    'maxItems' => $component->getMaxItems(),
-                    'maxSize' => $component->getMaxSize(),
-                    'maxWidth' => $component->getMaxWidth(),
-                    'minSize' => $component->getMinSize(),
-                    'pathGenerator' => $component->getPathGenerator(),
-                    'rules' => $component->getValidationRules(),
-                    'selected' => collect($component->getState())->pluck('id')->filter()->values()->all(),
-                    'shouldPreserveFilenames' => $component->shouldPreserveFilenames(),
-                    'statePath' => $component->getStatePath(),
-                    'types' => $component->getAcceptedFileTypes(),
-                    'visibility' => $component->getVisibility(),
-                    'keepOriginalSize' => $this->shouldKeepOriginalSize(),
+            ->modalSubmitAction(false)
+            ->modalCancelAction(false)
+            ->modalWidth(Width::SevenExtraLarge)
+            ->modalCloseButton(true)
+            ->modalContent(function (CuratorPicker $component): View {
+                $directory = $component->getDirectory() ?? config('shazzoo_media.directory', 'media');
+
+                return view('curator::components.modals.curator-panel', [
+                    'key' => $component->getKey(),
+                    'settings' => [
+                        'acceptedFileTypes' => $component->getAcceptedFileTypes(),
+                        'defaultSort' => $component->getDefaultPanelSort(),
+                        'directory' => $directory,
+                        'diskName' => $component->getDiskName(),
+                        'imageCropAspectRatio' => $component->getImageCropAspectRatio(),
+                        'imageResizeMode' => $component->getImageResizeMode(),
+                        'imageResizeTargetWidth' => $component->getImageResizeTargetWidth(),
+                        'imageResizeTargetHeight' => $component->getImageResizeTargetHeight(),
+                        'isLimitedToDirectory' => $component->isLimitedToDirectory(),
+                        'isTenantAware' => $component->isTenantAware(),
+                        'tenantOwnershipRelationshipName' => $component->getTenantOwnershipRelationshipName(),
+                        'isMultiple' => $component->isMultiple(),
+                        'maxItems' => $component->getMaxItems(),
+                        'maxSize' => $component->getMaxSize(),
+                        'maxWidth' => $component->getMaxWidth(),
+                        'minSize' => $component->getMinSize(),
+                        'pathGenerator' => $component->getPathGenerator(),
+                        'rules' => $component->getValidationRules(),
+                        'selected' => (array) $component->getState(),
+                        'shouldPreserveFilenames' => $component->shouldPreserveFilenames(),
+                        'statePath' => $component->getStatePath(),
+                        'types' => $component->getAcceptedFileTypes(),
+                        'visibility' => $component->getVisibility(),
+                        'keepOriginalSize' => $this->shouldKeepOriginalSize(),
+                    ],
                 ]);
-            });
+            })
+            ->action(fn (): null => null);
     }
 }

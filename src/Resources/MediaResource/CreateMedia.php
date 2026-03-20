@@ -4,19 +4,14 @@ namespace FinnWiel\ShazzooMedia\Resources\MediaResource;
 
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\ValidationException;
 use FinnWiel\ShazzooMedia\Models\ShazzooMedia;
 use FinnWiel\ShazzooMedia\Resources\MediaResource;
-use FinnWiel\ShazzooMedia\Services\DuplicateChecker;
-
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 class CreateMedia extends CreateRecord
 {
-    public static function getResource(): string
-    {
-        return MediaResource::class;
-    }
+    protected static string $resource = MediaResource::class;
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {

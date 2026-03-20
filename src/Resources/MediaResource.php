@@ -2,14 +2,19 @@
 
 namespace FinnWiel\ShazzooMedia\Resources;
 
-use Awcodes\Curator\Resources\MediaResource as BaseMediaResource;
-use Filament\Forms\Components\Group;
+use Awcodes\Curator\Resources\Media\MediaResource as BaseMediaResource;
+use Awcodes\Curator\Resources\Media\Schemas\MediaForm as CuratorMediaForm;
+use Awcodes\Curator\Resources\Media\Tables\MediaTable as CuratorMediaTable;
+use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Forms\Components\KeyValue;
-use Filament\Forms\Components\Section;
 use Filament\Forms\Components\ViewField;
-use Filament\Forms\Form;
 use Filament\Forms\Get;
-use Filament\Tables;
+use Filament\Schemas\Components\Group;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use FinnWiel\ShazzooMedia\Components\Forms\ShazzooMediaUploader;
 use FinnWiel\ShazzooMedia\Resources\MediaResource\CreateMedia;
@@ -18,14 +23,12 @@ use FinnWiel\ShazzooMedia\Resources\MediaResource\ListMedia;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
-use function Awcodes\Curator\is_media_resizable;
-
 class MediaResource extends BaseMediaResource
 {
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form
-            ->schema([
+        return $schema
+            ->components([
                 Group::make()
                     ->schema([
                         Section::make(trans('curator::forms.sections.file'))
@@ -63,7 +66,7 @@ class MediaResource extends BaseMediaResource
                             ]),
                         Section::make(trans('curator::forms.sections.exif'))
                             ->collapsed()
-                            ->visible(fn($record) => $record && $record->exif)
+                            ->visible(fn ($record) => $record && $record->exif)
                             ->schema([
                                 KeyValue::make('exif')
                                     ->hiddenLabel()
@@ -71,13 +74,22 @@ class MediaResource extends BaseMediaResource
                                     ->addable(false)
                                     ->deletable(false)
                                     ->editableKeys(false)
+                                    ->afterStateHydrated(function (KeyValue $component, $state, $record): void {
+                                        $exifData = is_array($record?->exif) ? $record->exif : [];
+
+                                        $component->state(collect($exifData)
+                                            ->map(fn ($value) => is_scalar($value) || is_null($value)
+                                                ? $value
+                                                : json_encode($value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE))
+                                            ->all());
+                                    })
                                     ->columnSpan('full'),
                             ]),
                     ])
                     ->columnSpan([
                         'md' => 'full',
                         'lg' => 2,
-                    ]), // ✅ Fixed missing comma
+                    ]),
                 Group::make()
                     ->schema([
                         Section::make(trans('curator::forms.sections.meta'))
@@ -109,26 +121,21 @@ class MediaResource extends BaseMediaResource
                     : static::getDefaultTableColumns()
             )
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
-                Tables\Actions\Action::make('placeholder')
+                EditAction::make(),
+                DeleteAction::make(),
+                Action::make('placeholder')
                     ->label('No available actions')
                     ->disabled()
                     ->icon('heroicon-o-lock-closed')
                     ->visible(
-                        fn(Model $record) => tap(
-                            config('shazzoo_media.media_policies') &&
-                                auth()->guard()->check() &&
-                                !optional(auth()->guard()->user())->can('update', $record) &&
-                                !optional(auth()->guard()->user())->can('delete', $record),
-                            function ($result) use ($record) {
-                                $user = auth()->guard()->user();
-                            }
-                        )
+                        fn (Model $record) => config('shazzoo_media.media_policies') &&
+                            auth()->guard()->check() &&
+                            ! optional(auth()->guard()->user())->can('update', $record) &&
+                            ! optional(auth()->guard()->user())->can('delete', $record)
                     ),
             ])
             ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
+                DeleteBulkAction::make(),
             ])
             ->defaultSort('created_at', 'desc')
             ->contentGrid(function () use ($livewire) {
@@ -147,20 +154,36 @@ class MediaResource extends BaseMediaResource
             ->recordUrl(false);
     }
 
+    /**
+     * @throws \Exception
+     */
+    public static function getDefaultTableColumns(): array
+    {
+        return CuratorMediaTable::getDefaultTableColumns();
+    }
+
+    /**
+     * @throws \Exception
+     */
+    public static function getDefaultGridTableColumns(): array
+    {
+        return CuratorMediaTable::getDefaultGridTableColumns();
+    }
+
     public static function getUploaderField(): ShazzooMediaUploader
     {
         return ShazzooMediaUploader::make('file')
-            ->acceptedFileTypes(config('curator.accepted_file_types'))
-            ->directory(config('curator.directory'))
-            ->disk(config('curator.disk'))
+            ->acceptedFileTypes(config('shazzoo_media.accepted_file_types', []))
+            ->directory(config('shazzoo_media.directory', 'media'))
+            ->disk(config('curator.default_disk'))
             ->hiddenLabel()
-            ->minSize(config('curator.min_size'))
+            ->minSize(config('shazzoo_media.min_size', 0))
             ->maxFiles(1)
-            ->maxSize(config('curator.max_size'))
+            ->maxSize(config('shazzoo_media.max_size', 51200))
             ->panelAspectRatio('24:9')
             ->pathGenerator(config('curator.path_generator'))
-            ->preserveFilenames(config('curator.should_preserve_filenames'))
-            ->visibility(config('curator.visibility'))
+            ->preserveFilenames(config('curator.features.preserve_file_names', false))
+            ->visibility(config('curator.default_visibility', 'public'))
             ->storeFileNamesIn('originalFilename')
             ->imageEditor()
             ->imageEditorAspectRatios([
@@ -170,7 +193,15 @@ class MediaResource extends BaseMediaResource
                 '3:2',
                 '1:1',
             ])
-            ->formatStateUsing(fn($state) => is_array($state) && isset($state['path']) ? $state['path'] : $state);
+            ->formatStateUsing(fn ($state) => is_array($state) && isset($state['path']) ? $state['path'] : $state);
+    }
+
+    /**
+     * @throws \Exception
+     */
+    public static function getAdditionalInformationFormSchema(): array
+    {
+        return CuratorMediaForm::getAdditionalInformationFormSchema();
     }
 
     public static function getPages(): array

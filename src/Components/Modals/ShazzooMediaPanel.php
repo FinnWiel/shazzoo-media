@@ -2,48 +2,53 @@
 
 namespace FinnWiel\ShazzooMedia\Components\Modals;
 
-use Illuminate\View\View;
-use Filament\Forms\Components\View as FormView;
 use Awcodes\Curator\Components\Modals\CuratorPanel as BaseCuratorPanel;
-use Awcodes\Curator\Models\Media;
-use Awcodes\Curator\Resources\MediaResource;
+use Awcodes\Curator\Resources\Media\MediaResource;
 use Exception;
-use Filament\Forms\Components\Group;
-use Filament\Forms\Form;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Gate;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Components\Group;
+use Filament\Schemas\Schema;
+use Filament\Support\Enums\IconSize;
+use Filament\Support\Enums\Size;
 use FinnWiel\ShazzooMedia\Components\Forms\ShazzooMediaUploader;
 use FinnWiel\ShazzooMedia\Exceptions\DuplicateMediaException;
+use FinnWiel\ShazzooMedia\Models\ShazzooMedia;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\View\View;
 use Livewire\Attributes\On;
 use Livewire\WithPagination;
 
 class ShazzooMediaPanel extends BaseCuratorPanel
 {
-
     use WithPagination;
 
     protected string $paginationTheme = 'tailwind';
+
     public int $page = 1;
+
     protected $queryString = [];
 
     public array $files_to_add = [];
-    public bool $keepOriginalSize = false;
-    public ?Media $mediaClass = null;
 
-    /**
-     * Constructor
-     */
-    public function __construct()
+    public bool $keepOriginalSize = false;
+
+    public function mount(): void
     {
-        $modelClass = config('shazzoo_media.model', \FinnWiel\ShazzooMedia\Models\ShazzooMedia::class);
-        $this->mediaClass = new $modelClass();
+        if (($this->settings['directory'] ?? null) === null) {
+            $this->settings['directory'] = config('shazzoo_media.directory', 'media');
+        }
+
+        parent::mount();
+
+        if (blank($this->directory)) {
+            $this->directory = config('shazzoo_media.directory', 'media');
+        }
     }
 
     /**
@@ -88,24 +93,26 @@ class ShazzooMediaPanel extends BaseCuratorPanel
     /**
      * @var string[]
      */
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
         if ($this->maxItems) {
             $this->validationRules = array_filter($this->validationRules, function ($value) {
-                return !($value === 'array' || str_starts_with($value, 'max:'));
+                return ! ($value === 'array' || str_starts_with($value, 'max:'));
             });
         }
 
-        $modelClass = config('shazzoo_media.model', \FinnWiel\ShazzooMedia\Models\ShazzooMedia::class);
+        $modelClass = config('shazzoo_media.model', ShazzooMedia::class);
 
-        return $form
+        return $schema
             ->schema([
                 ShazzooMediaUploader::make('files_to_add')
                     ->visible(function () {
+                        $modelClass = $this->getMediaModelClass();
+
                         return count($this->selected) !== 1 &&
                             (
-                                is_null(Gate::getPolicyFor($this->mediaClass)) ||
-                                Gate::allows('create', $this->mediaClass)
+                                is_null(Gate::getPolicyFor($modelClass)) ||
+                                Gate::allows('create', $modelClass)
                             );
                     })
                     ->image()
@@ -132,62 +139,65 @@ class ShazzooMediaPanel extends BaseCuratorPanel
                         ->map(function ($field) use ($modelClass) {
                             return $field->disabled(function () use ($modelClass) {
                                 // If policies are disabled, default to enabled fields
-                                if (!config('shazzoo_media.media_policies')) {
+                                if (! config('shazzoo_media.media_policies')) {
                                     return false; // Fields are enabled
                                 }
 
                                 $first = Arr::first($this->selected);
                                 if (is_array($first) && isset($first['id'])) {
                                     $media = $modelClass::find($first['id']);
-                                    return !Gate::allows('update', $media);
+
+                                    return ! Gate::allows('update', $media);
                                 }
+
                                 return true; // Default to disabled if no selection
                             });
                         })->toArray(),
-                ])->visible(fn() => filled($this->selected) && count($this->selected) === 1),
-            ])->statePath('data');
+                ])->visible(fn () => filled($this->selected) && count($this->selected) === 1),
+            ])->statePath('panelData');
     }
 
-    /**
-     * @return Action
-     */
     public function addInsertFilesAction(): Action
     {
         return $this->addFilesAction(true)
             ->name('addInsertFiles')
             ->color('primary')
+            ->button()
+            ->size('sm')
+            ->icon(null)
             ->label(trans('shazzoo_media::views.panel.buttons.insert'));
     }
 
-    /**
-     * @return Action
-     */
     public function insertMediaAction(): Action
     {
         return Action::make('insertMedia')
             ->button()
             ->size('sm')
             ->color('primary')
+            ->icon(null)
             ->label(trans('shazzoo_media::views.panel.buttons.use'))
             ->action(function (): void {
-                $this->dispatch('insert-content', type: 'media', statePath: $this->statePath, media: $this->selected);
+                $this->dispatch('insert-media', [
+                    'statePath' => $this->statePath,
+                    'media' => $this->selected,
+                    'context' => $this->context,
+                ]);
                 $this->dispatch('close-modal', id: $this->modalId ?? 'curator-panel');
             });
     }
 
-    /**
-     * @return Action
-     */
     public function updateFileAction(): Action
     {
         return Action::make('updateFile')
             ->button()
             ->size('sm')
             ->color('secondary')
+            ->icon(null)
             ->label(trans('curator::views.panel.edit_save'))
             ->action(function (): void {
                 try {
-                    $item = $this->mediaClass->find(Arr::first($this->selected)['id']);
+                    $modelClass = $this->getMediaModelClass();
+                    $item = $modelClass::find(Arr::first($this->selected)['id']);
 
                     if ($item) {
                         $item->update($this->form->getState());
@@ -203,7 +213,7 @@ class ShazzooMediaPanel extends BaseCuratorPanel
                             ->body(trans('curator::notifications.update_success'))
                             ->send();
                     } else {
-                        throw new Exception();
+                        throw new Exception;
                     }
                 } catch (Exception) {
                     Notification::make('curator_update_error')
@@ -214,29 +224,44 @@ class ShazzooMediaPanel extends BaseCuratorPanel
             });
     }
 
-    /**
-     * @param bool $insertAfter
-     * @return Action
-     */
+    public function cancelEditAction(): Action
+    {
+        return Action::make('cancelEdit')
+            ->button()
+            ->size('sm')
+            ->color('gray')
+            ->icon(null)
+            ->label(trans('curator::views.panel.edit_cancel'))
+            ->action(function (): void {
+                $this->dispatch('close-modal', id: $this->modalId ?? 'curator-panel');
+            });
+    }
+
     public function addFilesAction(bool $insertAfter = false): Action
     {
         return Action::make('addFiles')
             ->button()
             ->size('sm')
             ->color('primary')
+            ->icon(null)
             ->label(trans('shazzoo_media::views.panel.buttons.insert'))
-            ->disabled(fn(): bool => count($this->form->getRawState()['files_to_add'] ?? []) === 0)
-            ->visible(fn() => true)
+            ->disabled(fn (): bool => count($this->form->getRawState()['files_to_add'] ?? []) === 0)
+            ->visible(fn () => true)
             ->action(function () use ($insertAfter): void {
                 try {
-                    $media = $this->createMediaFiles($this->form->getState());
+                    $media = $this->createMediaFiles();
 
                     $this->form->fill();
                     // $this->files = [...$media, ...$this->files];
 
                     if ($insertAfter) {
-                        $this->dispatch('insert-content', type: 'media', statePath: $this->statePath, media: $media);
+                        $this->dispatch('insert-media', [
+                            'statePath' => $this->statePath,
+                            'media' => $media,
+                            'context' => $this->context,
+                        ]);
                         $this->dispatch('close-modal', id: $this->modalId ?? 'curator-panel');
+
                         return;
                     }
 
@@ -259,19 +284,16 @@ class ShazzooMediaPanel extends BaseCuratorPanel
             });
     }
 
-    /**
-     * @param array $formData
-     * @return array
-     */
-    protected function createMediaFiles(array $formData): array
+    protected function createMediaFiles(): array
     {
         $media = [];
-        $modelClass = config('shazzoo_media.model', \FinnWiel\ShazzooMedia\Models\ShazzooMedia::class);
+        $modelClass = config('shazzoo_media.model', ShazzooMedia::class);
+        $formData = $this->form->getState();
 
         foreach ($formData['files_to_add'] as $item) {
-            if (!empty($item['exif'])) {
+            if (! empty($item['exif'])) {
                 array_walk_recursive($item['exif'], function (&$entry) {
-                    if (!mb_detect_encoding($entry, 'utf-8', true)) {
+                    if (! mb_detect_encoding($entry, 'utf-8', true)) {
                         $entry = mb_convert_encoding($entry, 'utf-8');
                     }
                 });
@@ -283,7 +305,7 @@ class ShazzooMediaPanel extends BaseCuratorPanel
             $model->file = $item;
             $model->save();
 
-            $media[] = tap($model, fn($media) => $media->getPrettyName())->toArray();
+            $media[] = tap($model, fn ($media) => $media->getPrettyName())->toArray();
         }
 
         return $media;
@@ -297,10 +319,12 @@ class ShazzooMediaPanel extends BaseCuratorPanel
         $first = Arr::first($this->selected);
 
         if (is_array($first) && isset($first['id'])) {
-            $item = $this->mediaClass->find($first['id']);
+            $modelClass = $this->getMediaModelClass();
+            $item = $modelClass::find($first['id']);
 
             if ($item) {
                 $this->form->fill($item->toArray());
+
                 return;
             }
         }
@@ -311,20 +335,21 @@ class ShazzooMediaPanel extends BaseCuratorPanel
     /**
      * Add a media item to the selection.
      *
-     * @param int|string $id The ID of the media item to add.
+     * @param  int|string  $id  The ID of the media item to add.
      */
     public function addToSelection(int|string $id): void
     {
-        $item = $this->mediaClass->find($id);
+        $modelClass = $this->getMediaModelClass();
+        $item = $modelClass::find($id);
 
-        if (!$item) {
+        if (! $item) {
             return;
         }
 
         $itemArray = $item->toArray();
 
         if ($this->isMultiple) {
-            if (!collect($this->selected)->contains('id', $itemArray['id'])) {
+            if (! collect($this->selected)->contains('id', $itemArray['id'])) {
                 $this->selected[] = $itemArray;
             }
         } else {
@@ -338,12 +363,12 @@ class ShazzooMediaPanel extends BaseCuratorPanel
     /**
      * Remove a media item from the selection.
      *
-     * @param int|string $id The ID of the media item to remove.
+     * @param  int|string  $id  The ID of the media item to remove.
      */
     public function removeFromSelection(int|string $id): void
     {
         $this->selected = collect($this->selected)
-            ->filter(fn($item) => isset($item['id']) && $item['id'] != $id)
+            ->filter(fn ($item) => isset($item['id']) && $item['id'] != $id)
             ->values()
             ->all();
 
@@ -356,8 +381,11 @@ class ShazzooMediaPanel extends BaseCuratorPanel
         return Action::make('convert')
             ->icon('heroicon-o-arrows-pointing-in')
             ->iconButton()
+            ->size(Size::Large)
+            ->iconSize(IconSize::Large)
+            ->color('gray')
             ->extraAttributes([
-                'style' => 'border: none; margin: 0;',
+                'style' => 'min-width: 2.25rem; min-height: 2.25rem;',
             ])
             ->form([
                 Select::make('conversion')
@@ -369,8 +397,9 @@ class ShazzooMediaPanel extends BaseCuratorPanel
                 $conversion = $data['conversion'];
                 $mediaItem = $arguments['item'] ?? null;
 
-                if (!$mediaItem) {
+                if (! $mediaItem) {
                     Notification::make()->danger()->title('No media selected')->send();
+
                     return;
                 }
 
@@ -392,6 +421,39 @@ class ShazzooMediaPanel extends BaseCuratorPanel
             });
     }
 
+    public function viewItemAction(): Action
+    {
+        return parent::viewItemAction()
+            ->iconButton()
+            ->size(Size::Large)
+            ->iconSize(IconSize::Large)
+            ->extraAttributes([
+                'style' => 'min-width: 2.25rem; min-height: 2.25rem;',
+            ]);
+    }
+
+    public function downloadItemAction(): Action
+    {
+        return parent::downloadItemAction()
+            ->iconButton()
+            ->size(Size::Large)
+            ->iconSize(IconSize::Large)
+            ->extraAttributes([
+                'style' => 'min-width: 2.25rem; min-height: 2.25rem;',
+            ]);
+    }
+
+    public function destroyItemAction(): Action
+    {
+        return parent::destroyItemAction()
+            ->iconButton()
+            ->size(Size::Large)
+            ->iconSize(IconSize::Large)
+            ->extraAttributes([
+                'style' => 'min-width: 2.25rem; min-height: 2.25rem;',
+            ]);
+    }
+
     protected function getConversionOptions(): array
     {
         $conversions = config('shazzoo_media.conversions', []);
@@ -401,24 +463,22 @@ class ShazzooMediaPanel extends BaseCuratorPanel
         })->toArray();
     }
 
-
-
     /**
      * Get paginated files based on search criteria.
-     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
+     *
+     * @return LengthAwarePaginator
      */
     public function getPaginatedFiles()
     {
-        $modelClass = config('shazzoo_media.model', \FinnWiel\ShazzooMedia\Models\ShazzooMedia::class);
+        $modelClass = config('shazzoo_media.model', ShazzooMedia::class);
 
         return $modelClass::query()
             ->whereNull('model_type')
-            ->when($this->search, fn($query) => $query->where('name', 'like', '%' . $this->search . '%'))
-            ->when(!empty($this->types), fn($query) => $query->whereIn('type', $this->types))
+            ->when($this->search, fn ($query) => $query->where('name', 'like', '%'.$this->search.'%'))
+            ->when(! empty($this->types), fn ($query) => $query->whereIn('type', $this->types))
             ->orderBy('created_at', 'desc')
             ->paginate(config('shazzoo_media.pagination', 25), ['*'], 'page', $this->page);
     }
-
 
     /**
      * Get the view for pagination.
@@ -431,21 +491,23 @@ class ShazzooMediaPanel extends BaseCuratorPanel
     /**
      * Go to a specific page in the pagination.
      *
-     * @param int $page The page number to go to.
-     * @param string $pageName The name of the page parameter (default is 'page').
+     * @param  int  $page  The page number to go to.
+     * @param  string  $pageName  The name of the page parameter (default is 'page').
      */
     public function gotoPage($page, $pageName = 'page')
     {
         $this->page = $page;
     }
 
-    /**
-     * @return View
-     */
     public function render(): View
     {
-        return view('curator::components.modals.curator-panel', [
+        return view('curator::livewire.curator-panel', [
             'paginatedFiles' => $this->getPaginatedFiles(),
         ]);
+    }
+
+    protected function getMediaModelClass(): string
+    {
+        return config('shazzoo_media.model', ShazzooMedia::class);
     }
 }

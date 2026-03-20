@@ -129,10 +129,18 @@
                             </div>
 
                             @if (!str($item['type'])->contains('video'))
+                                @php
+                                    $itemName = $item['pretty_name'] ?? $item['name'] ?? '';
+                                    $itemSize = $item['size_for_humans'] ?? (isset($item['size']) && is_numeric($item['size'])
+                                        ? \Illuminate\Support\Number::fileSize((int) $item['size'])
+                                        : null);
+                                @endphp
                                 <div
                                     class="absolute inset-x-0 bottom-0 flex items-center justify-between px-2 pt-10 pb-1 text-xs text-white bg-gradient-to-t from-black/80 to-transparent gap-3">
-                                    <p class="truncate">{{ $item['pretty_name'] }}</p>
-                                    <p class="flex-shrink-0">{{ $item['size_for_humans'] }}</p>
+                                    <p class="truncate">{{ $itemName }}</p>
+                                    @if (filled($itemSize))
+                                        <p class="flex-shrink-0">{{ $itemSize }}</p>
+                                    @endif
                                 </div>
                             @endif
                         </div>
@@ -146,7 +154,7 @@
                 @if (!$maxItems || $itemsCount < $maxItems)
                     <template x-if="!loading">
                         <div>
-                            {{ $getAction('open_curator_picker') }}
+                            {{ $getAction('launchPanel') }}
                         </div>
                     </template>
                 @endif

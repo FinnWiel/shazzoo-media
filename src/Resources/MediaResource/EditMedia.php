@@ -10,10 +10,7 @@ use FinnWiel\ShazzooMedia\Resources\MediaResource;
 
 class EditMedia extends EditRecord
 {
-    public static function getResource(): string
-    {
-        return MediaResource::class;
-    }
+    protected static string $resource = MediaResource::class;
 
     /**
      * @throws Exception
@@ -34,13 +31,13 @@ class EditMedia extends EditRecord
 
     protected function afterSave(): void
     {
-        $state = $this->getForm('form')->getRawState();
+        $state = $this->getSchema('form')->getRawState();
 
         if ($state['file'] !== null) {
-            $livewire = $this->getForm('form')->getLivewire();
-            $statePath = $this->getForm('form')->getStatePath();
+            $livewire = $this->getSchema('form')->getLivewire();
+            $statePath = $this->getSchema('form')->getStatePath();
 
-            data_set($livewire, $statePath . '.file', null);
+            data_set($livewire, $statePath.'.file', null);
         }
     }
 }

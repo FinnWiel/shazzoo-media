@@ -76,9 +76,21 @@
                                     }, 1000)
                                 },
                                 handleCopy: function(subject) {
-                                    navigator.clipboard.writeText(subject)
+                                    if (navigator.clipboard && window.isSecureContext) {
+                                        navigator.clipboard.writeText(subject).then(() => this.toggleMessage());
+
+                                        return;
+                                    }
+
+                                    const input = document.createElement('input');
+                                    input.value = subject;
+                                    document.body.appendChild(input);
+                                    input.select();
+                                    document.execCommand('copy');
+                                    document.body.removeChild(input);
+                                    this.toggleMessage();
                                 }
-                            }" x-on:click="handleCopy('{{ $record->url }}'); toggleMessage();">
+                            }" x-on:click="handleCopy(@js($record->url));">
                             <span x-show="! showMessage" class="filament-link">
                                 <x-filament::icon alias="curator::copy-link" icon="heroicon-s-clipboard-document"
                                     class="w-4 h-4" />

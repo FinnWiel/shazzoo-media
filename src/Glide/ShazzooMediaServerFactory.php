@@ -2,17 +2,16 @@
 
 namespace FinnWiel\ShazzooMedia\Glide;
 
-use Awcodes\Curator\Glide\Contracts\ServerFactory;
+use Awcodes\Curator\Glide\SymfonyResponseFactory;
 use Illuminate\Support\Facades\Log;
 use League\Flysystem\Filesystem;
 use League\Flysystem\Local\LocalFilesystemAdapter;
-use League\Glide\Responses\SymfonyResponseFactory;
 use League\Glide\Server;
 use League\Glide\ServerFactory as GlideServerFactory;
 
-class ShazzooMediaServerFactory implements ServerFactory
+class ShazzooMediaServerFactory
 {
-    public function getFactory(): GlideServerFactory | Server
+    public function getFactory(): GlideServerFactory|Server
     {
         $filesystem = new Filesystem(
             new LocalFilesystemAdapter(storage_path('app'))
@@ -56,7 +55,6 @@ class ShazzooMediaServerFactory implements ServerFactory
 
             return "public/media/{$mediaId}/conversions/{$filename}-{$conversion}.{$ext}";
         });
-
 
         return $server;
     }

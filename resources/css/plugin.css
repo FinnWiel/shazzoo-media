@@ -1,0 +1,22 @@
+.fi-modal-window:has(.curator-panel) .fi-modal-header {
+    display: flex !important;
+}
+
+.fi-modal-window:has(.curator-panel) .fi-modal-content {
+    padding: 0 !important;
+}
+
+.shadow-top {
+    box-shadow: 0 -10px 20px -12px rgba(0, 0, 0, 0.45);
+}
+
+.curator-preview-actions .fi-icon-btn {
+    margin: 0 !important;
+    width: 2.375rem !important;
+    height: 2.375rem !important;
+    border-radius: 0 !important;
+}
+
+.curator-preview-actions .fi-icon-btn + .fi-icon-btn {
+    border-left: 1px solid rgb(55 65 81);
+}

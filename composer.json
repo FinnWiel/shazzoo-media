@@ -33,17 +33,17 @@
     "sort-packages": true
   },
   "require": {
-    "php": "^8.1",
-    "illuminate/support": "^10.0 || ^11.0 || ^12.0", 
-    "intervention/image": "^2.7",
-    "livewire/livewire": "^3.0",
-    "filament/filament": "^3.0",
-    "awcodes/filament-curator": "^3.0",
+    "php": "^8.2",
+    "illuminate/support": "^11.0 || ^12.0 || ^13.0",
+    "intervention/image": "^3.9",
+    "livewire/livewire": "^3.5",
+    "filament/filament": "^4.0",
+    "awcodes/filament-curator": "4.0.5",
     "spatie/laravel-package-tools": "^1.0"
   },
   "require-dev": {
-    "orchestra/testbench": "^8.0",
-    "phpunit/phpunit": "^10.0"
+    "orchestra/testbench": "^9.17 || ^10.11 || ^11.0",
+    "phpunit/phpunit": "^10.5.35 || ^11.5.3 || ^12.5.8"
   },
   "minimum-stability": "dev",
   "prefer-stable": true

@@ -2,10 +2,14 @@
 
 namespace FinnWiel\ShazzooMedia;
 
+use App\Policies\MediaPolicy;
+use Awcodes\Curator\Facades\Glide;
+use Awcodes\Curator\Glide\SymfonyResponseFactory;
 use Awcodes\Curator\Models\Media;
-use Filament\Support\Assets\Css;
-use Filament\Support\Facades\FilamentAsset;
-use Livewire\Livewire;
+use Awcodes\Curator\Resources\Media\MediaResource as CuratorMediaResource;
+use Awcodes\Curator\Resources\Media\Pages\CreateMedia as CuratorCreateMedia;
+use Awcodes\Curator\Resources\Media\Pages\EditMedia as CuratorEditMedia;
+use Awcodes\Curator\Resources\Media\Pages\ListMedia as CuratorListMedia;
 use FinnWiel\ShazzooMedia\Commands\ClearConversionDatabaseRecords;
 use FinnWiel\ShazzooMedia\Commands\ClearMedia;
 use FinnWiel\ShazzooMedia\Commands\ClearMediaConversions;
@@ -16,13 +20,18 @@ use FinnWiel\ShazzooMedia\Commands\SetConversionDatabaseRecords;
 use FinnWiel\ShazzooMedia\Components\Modals\ShazzooMediaPanel;
 use FinnWiel\ShazzooMedia\Models\ShazzooMedia;
 use FinnWiel\ShazzooMedia\Observers\ShazzooMediaObserver;
-use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\View;
-use Spatie\LaravelPackageTools\Commands\InstallCommand;
-use Spatie\LaravelPackageTools\PackageServiceProvider;
-use Spatie\LaravelPackageTools\Package;
+use FinnWiel\ShazzooMedia\Resources\MediaResource;
+use FinnWiel\ShazzooMedia\Resources\MediaResource\CreateMedia as ShazzooCreateMedia;
+use FinnWiel\ShazzooMedia\Resources\MediaResource\EditMedia as ShazzooEditMedia;
+use FinnWiel\ShazzooMedia\Resources\MediaResource\ListMedia as ShazzooListMedia;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\View;
+use Livewire\Livewire;
+use Spatie\LaravelPackageTools\Commands\InstallCommand;
+use Spatie\LaravelPackageTools\Package;
+use Spatie\LaravelPackageTools\PackageServiceProvider;
 
 class ShazzooMediaServiceProvider extends PackageServiceProvider
 {
@@ -52,57 +61,29 @@ class ShazzooMediaServiceProvider extends PackageServiceProvider
             });
     }
 
+    public function packageRegistered(): void
+    {
+        $this->overrideCuratorConfig();
+        $this->bindCuratorClasses();
+    }
+
     public function packageBooted(): void
     {
-        $modelClass = config('shazzoo_media.model', \FinnWiel\ShazzooMedia\Models\ShazzooMedia::class);
-        // Use new views
-        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'curator');
-        // $this->loadViewsFrom(__DIR__ . '/../resources/views/vendor/curator', 'curator');
+        $modelClass = config('shazzoo_media.model', ShazzooMedia::class);
+
+        $this->overrideCuratorConfig();
+        $this->bindCuratorClasses();
+        $this->configureGlideServer();
+
+        $this->loadViewsFrom(__DIR__.'/../resources/views', 'curator');
+
         $this->publishes([
-            __DIR__ . '/Policies/MediaPolicy.php.stub' => app_path('Policies/MediaPolicy.php'),
+            __DIR__.'/Policies/MediaPolicy.php.stub' => app_path('Policies/MediaPolicy.php'),
         ], 'shazzoo-media-policy');
 
         $this->publishes([
-            __DIR__ . '/Models/ShazzooMedia.php.stub' => app_path('Models/ShazzooMedia.php'),
+            __DIR__.'/Models/ShazzooMedia.php.stub' => app_path('Models/ShazzooMedia.php'),
         ], 'shazzoo-media-model');
-
-        // Set all changes for curator conifig to work with shazzoo media
-        config()->set('curator.resources.resource', \FinnWiel\ShazzooMedia\Resources\MediaResource::class); // Resource
-        config()->set('curator.model', $modelClass); // Model
-        config()->set('curator.glide.server', \FinnWiel\ShazzooMedia\Glide\ShazzooMediaServerFactory::class);
-        config()->set('curator.glide.route_path', 'storage'); // Glide server
-        config()->set('curator.tabs.display_curation', false); // Display curation tab
-        config()->set('curator.tabs.display_upload_new', false); // Display upload new tab
-        config()->set('curator.multi_select_key', 'ctrlKey'); // Multi select key
-        config()->set('curator.max_size', config('shazzoo_media.max_size')); // Max file size in KB
-        config()->set('curator.accepted_file_types', [
-            // Images
-            'image/jpeg',  // .jpg, .jpeg
-            'image/png',   // .png
-            'image/webp',  // .webp
-            'image/gif',   // .gif
-            'image/svg+xml', // .svg
-
-            // Documents
-            'application/pdf',  // .pdf
-            'application/msword', // .doc
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
-            'application/vnd.openxmlformats-officedocument.presentationml.presentation', // .pptx
-            'application/vnd.ms-powerpoint', // .ppt
-            'text/csv',  // .csv
-            'application/json', // .json
-
-            // Video
-            'video/mp4',  // .mp4
-            'video/quicktime',  // .mov
-
-            // Audio
-            'audio/mpeg',  // .mp3
-            'audio/wav',   // .wav
-
-            // Flash
-            'application/x-shockwave-flash',  // .swf
-        ]);
 
         // Register the MediaPolicy if it exists in the config
         if (config('shazzoo_media.media_policies')) {
@@ -111,7 +92,7 @@ class ShazzooMediaServiceProvider extends PackageServiceProvider
             if (File::exists($customPolicy)) {
                 Gate::policy(
                     $modelClass,
-                    \App\Policies\MediaPolicy::class
+                    MediaPolicy::class
                 );
             } else {
                 if (app()->environment('local')) {
@@ -119,8 +100,6 @@ class ShazzooMediaServiceProvider extends PackageServiceProvider
                 }
             }
         }
-
-        $this->app->bind(Media::class, $modelClass);
 
         if (app()->bound('livewire')) {
             Livewire::component('curator-panel', ShazzooMediaPanel::class);
@@ -131,12 +110,51 @@ class ShazzooMediaServiceProvider extends PackageServiceProvider
         $modelClass::observe(ShazzooMediaObserver::class);
 
         // Load the views from the package instead of from curator
-        View::prependNamespace('curator', __DIR__ . '/../resources/views');
-        View::prependNamespace('shazzoo_media', __DIR__ . '/../resources/views');
-        View::addNamespace('livewire', __DIR__ . '/../resources/views');
+        View::prependNamespace('curator', __DIR__.'/../resources/views');
+        View::prependNamespace('shazzoo_media', __DIR__.'/../resources/views');
+        View::addNamespace('livewire', __DIR__.'/../resources/views');
+    }
 
-        FilamentAsset::register([
-            Css::make('curator', base_path('vendor/awcodes/filament-curator/resources/dist/curator.css'))->loadedOnRequest(false),
-        ], 'finnwiel/shazzoo-media');
+    protected function overrideCuratorConfig(): void
+    {
+        $modelClass = config('shazzoo_media.model', ShazzooMedia::class);
+        $defaultDirectory = config('shazzoo_media.directory', 'media');
+        $glideToken = config('curator.glide_token') ?: config('app.key');
+
+        if (blank($glideToken)) {
+            $glideToken = sha1((string) base_path());
+        }
+
+        config()->set('curator.resource.resource', MediaResource::class);
+        config()->set('curator.resource.pages.create', ShazzooCreateMedia::class);
+        config()->set('curator.resource.pages.edit', ShazzooEditMedia::class);
+        config()->set('curator.resource.pages.index', ShazzooListMedia::class);
+        config()->set('curator.model', $modelClass);
+        config()->set('curator.default_directory', $defaultDirectory);
+        config()->set('curator.glide_token', $glideToken);
+    }
+
+    protected function bindCuratorClasses(): void
+    {
+        $modelClass = config('shazzoo_media.model', ShazzooMedia::class);
+
+        $this->app->bind(Media::class, $modelClass);
+        $this->app->bind(CuratorMediaResource::class, MediaResource::class);
+        $this->app->bind(CuratorCreateMedia::class, ShazzooCreateMedia::class);
+        $this->app->bind(CuratorEditMedia::class, ShazzooEditMedia::class);
+        $this->app->bind(CuratorListMedia::class, ShazzooListMedia::class);
+    }
+
+    protected function configureGlideServer(): void
+    {
+        Glide::serverConfig([
+            'driver' => 'gd',
+            'response' => new SymfonyResponseFactory(app('request')),
+            'source' => storage_path('app'),
+            'source_path_prefix' => 'public',
+            'cache' => storage_path('app'),
+            'cache_path_prefix' => '.cache',
+            'max_image_size' => 2000 * 2000,
+        ]);
     }
 }

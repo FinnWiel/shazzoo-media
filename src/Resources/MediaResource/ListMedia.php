@@ -2,22 +2,25 @@
 
 namespace FinnWiel\ShazzooMedia\Resources\MediaResource;
 
-use Awcodes\Curator\Actions\MultiUploadAction;
 use Awcodes\Curator\CuratorPlugin;
 use Exception;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
+use FinnWiel\ShazzooMedia\Resources\MediaResource;
 use Illuminate\Support\Str;
 
 class ListMedia extends ListRecords
 {
-    public string $layoutView;
+    public string $layoutView = 'grid';
+
+    protected static string $resource = MediaResource::class;
 
     public function mount(): void
     {
         parent::mount();
-        $this->layoutView = CuratorPlugin::get()->getDefaultListView();
+
+        $this->layoutView = config('curator.resource.default_layout', 'grid');
     }
 
     protected $listeners = [
@@ -29,11 +32,6 @@ class ListMedia extends ListRecords
     {
         $this->layoutView = $this->layoutView === 'list' ? 'grid' : 'list';
         $this->dispatch('layoutViewChanged', $this->layoutView);
-    }
-
-    public static function getResource(): string
-    {
-        return CuratorPlugin::get()->getResource();
     }
 
     public function getTitle(): string

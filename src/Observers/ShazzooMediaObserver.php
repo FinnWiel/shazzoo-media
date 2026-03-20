@@ -2,10 +2,10 @@
 
 namespace FinnWiel\ShazzooMedia\Observers;
 
+use Awcodes\Curator\Facades\Glide;
 use FinnWiel\ShazzooMedia\Exceptions\DuplicateMediaException;
-use Illuminate\Support\Facades\Log;
+use FinnWiel\ShazzooMedia\Models\ShazzooMedia;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use stdClass;
 
 class ShazzooMediaObserver
@@ -15,7 +15,7 @@ class ShazzooMediaObserver
      */
     protected function getModelClass(): string
     {
-        return config('shazzoo_media.model', \FinnWiel\ShazzooMedia\Models\ShazzooMedia::class);
+        return config('shazzoo_media.model', ShazzooMedia::class);
     }
 
     /**
@@ -29,7 +29,7 @@ class ShazzooMediaObserver
                     $media->{$k} = is_string($v) ? $v : $v->toString();
                 } elseif ($k === 'exif' && is_array($v)) {
                     array_walk_recursive($v, function (&$entry) {
-                        if (!mb_detect_encoding($entry, 'utf-8', true)) {
+                        if (! mb_detect_encoding($entry, 'utf-8', true)) {
                             $entry = mb_convert_encoding($entry, 'utf-8');
                         }
                     });
@@ -91,8 +91,8 @@ class ShazzooMediaObserver
         if ($this->hasMediaUpload($media)) {
             $original = $media->getOriginal();
 
-            if (Storage::disk($media->disk)->exists($media->directory . '/' . $original['name'] . '.' . $original['ext'])) {
-                Storage::disk($media->disk)->delete($media->directory . '/' . $original['name'] . '.' . $original['ext']);
+            if (Storage::disk($media->disk)->exists($media->directory.'/'.$original['name'].'.'.$original['ext'])) {
+                Storage::disk($media->disk)->delete($media->directory.'/'.$original['name'].'.'.$original['ext']);
             }
 
             foreach ($media->file as $k => $v) {
@@ -101,21 +101,21 @@ class ShazzooMediaObserver
 
             Storage::disk($media->disk)->move(
                 $media->path,
-                $media->directory . '/' . $original['name'] . '.' . $media->ext
+                $media->directory.'/'.$original['name'].'.'.$media->ext
             );
 
             $media->name = $original['name'];
-            $media->path = $media->directory . '/' . $original['name'] . '.' . $media->ext;
+            $media->path = $media->directory.'/'.$original['name'].'.'.$media->ext;
 
-            $server = app(config('curator.glide.server'))->getFactory();
+            $server = Glide::getServer();
             $server->deleteCache($media->path);
         }
 
-        if ($media->isDirty(['name']) && !blank($media->name)) {
-            $newFilePath = $media->directory . '/' . $media->name . '.' . $media->ext;
+        if ($media->isDirty(['name']) && ! blank($media->name)) {
+            $newFilePath = $media->directory.'/'.$media->name.'.'.$media->ext;
 
             if (Storage::disk($media->disk)->exists($newFilePath)) {
-                $media->name .= '-' . time();
+                $media->name .= '-'.time();
             }
 
             Storage::disk($media->disk)->move($media->path, $newFilePath);
@@ -124,8 +124,8 @@ class ShazzooMediaObserver
             $oldName = $media->getOriginal('name');
             $newName = $media->name;
 
-            $conversionBaseDir = 'conversions/' . $oldName;
-            $newConversionBaseDir = 'conversions/' . $newName;
+            $conversionBaseDir = 'conversions/'.$oldName;
+            $newConversionBaseDir = 'conversions/'.$newName;
 
             $disk = Storage::disk($media->disk);
 
@@ -137,7 +137,7 @@ class ShazzooMediaObserver
 
                     $disk->move(
                         $filePath,
-                        $newConversionBaseDir . '/' . $newFilename
+                        $newConversionBaseDir.'/'.$newFilename
                     );
                 }
                 $disk->deleteDirectory($conversionBaseDir);
@@ -167,7 +167,7 @@ class ShazzooMediaObserver
         }
 
         $protectedDirs = ['public', '', '.', '/', 'media', 'storage'];
-        if (!in_array($directory, $protectedDirs, true)) {
+        if (! in_array($directory, $protectedDirs, true)) {
             if (count($disk->allFiles($directory)) === 0) {
                 $disk->deleteDirectory($directory);
             }

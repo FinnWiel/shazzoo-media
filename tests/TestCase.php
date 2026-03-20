@@ -2,9 +2,8 @@
 
 namespace FinnWiel\ShazzooMedia\Tests;
 
-use Orchestra\Testbench\TestCase as OrchestraTestCase;
 use FinnWiel\ShazzooMedia\ShazzooMediaServiceProvider;
-use Illuminate\Support\Facades\Artisan;
+use Orchestra\Testbench\TestCase as OrchestraTestCase;
 
 class TestCase extends OrchestraTestCase
 {
@@ -20,9 +19,9 @@ class TestCase extends OrchestraTestCase
         // Setup default database to use sqlite :memory:
         $app['config']->set('database.default', 'testing');
         $app['config']->set('database.connections.testing', [
-            'driver'   => 'sqlite',
+            'driver' => 'sqlite',
             'database' => ':memory:',
-            'prefix'   => '',
+            'prefix' => '',
         ]);
     }
 
@@ -34,7 +33,7 @@ class TestCase extends OrchestraTestCase
         $this->app->boot();
 
         // Run migrations from test migrations folder
-        $this->loadMigrationsFrom(__DIR__ . '/migrations');
+        $this->loadMigrationsFrom(__DIR__.'/migrations');
         $this->artisan('migrate', ['--database' => 'testing'])->run();
     }
-} 
+}

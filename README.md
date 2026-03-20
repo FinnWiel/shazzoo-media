@@ -2,9 +2,9 @@
 
 [![License](https://img.shields.io/github/license/finnwiel/shazzoo-media.svg)](LICENSE)
 [![Packagist Version](https://img.shields.io/packagist/v/finnwiel/shazzoo-media.svg)](https://packagist.org/packages/finnwiel/shazzoo-media)
-![Laravel](https://img.shields.io/badge/laravel-12.x-red)
-![Filament](https://img.shields.io/badge/filament-3.x-yellow)
-![PHP](https://img.shields.io/badge/php-^8.1-blue)
+![Laravel](https://img.shields.io/badge/laravel-11--13.x-red)
+![Filament](https://img.shields.io/badge/filament-4.x-yellow)
+![PHP](https://img.shields.io/badge/php-^8.3-blue)
 
 A Laravel + Filament plugin that extends [Filament Curator](https://github.com/awcodes/filament-curator) with custom media conversion logic and a customized media model.
 
@@ -36,25 +36,23 @@ If you installed Curator before Shazzoo Media, youâ€™ll need to remove Curatorâ€
 php artisan shazzoo_media:install
 ```
 
-> **Note:** This plugin will install curator for you but you will have to do some of the setup. Like installing CropperJS and using a custom filament theme for styling. If you have not set up a custom theme and are using a Panel follow the instructions in the Filament Docs first.
+> **Note:** This plugin will install Curator for you, but you still need to set up your Filament panel theme.
 
 ```bash
 npm install -D cropperjs
 ```
 
-Import the plugin's stylesheet and cropperjs' stylesheet into your theme's css file.
+Import Curator's stylesheet in your Filament panel theme CSS file.
 
-```php
-@import '<path-to-vendor>/awcodes/filament-curator/resources/css/plugin.css';
+```css
+@import '../../../../vendor/awcodes/filament-curator/resources/css/plugin.css';
 ```
 
-Add the plugin's views to your custom theme's `tailwind.config.js` file.
+Add Curator and Shazzoo Media views to your theme sources.
 
-```php
-content: [
-        './vendor/awcodes/filament-curator/resources/**/*.blade.php',
-        './vendor/finnwiel/shazzoo-media/resources/views/components/**/*.blade.php',
-]
+```css
+@source '../../../../vendor/awcodes/filament-curator/resources/views/**/*.blade.php';
+@source '../../../../vendor/finnwiel/shazzoo-media/resources/views/**/*.blade.php';
 ```
 
 ## Usage
@@ -88,17 +86,12 @@ If you are using Filament Panels you will need to add the Plugin to your Panel's
 public function panel(Panel $panel): Panel
 {
     return $panel
-        ->colors([
-                'primary' => Color::Amber,
-                'secondary' => Color::Cyan, // Add a secondary color
-            ])
+        ->viteTheme('resources/css/filament/admin/theme.css')
         ->plugins([
                 \Awcodes\Curator\CuratorPlugin::make()
                     ->label('Media')
-                    ->navigationLabel('Media Library')
-                    ->resource(MediaResource::class) // use FinnWiel\ShazzooMedia\Resources\MediaResource;
                     ->registerNavigation(true)
-                    ->navigationCountBadge(true)
+                    ->showBadge(true)
             ])
 }
 ```

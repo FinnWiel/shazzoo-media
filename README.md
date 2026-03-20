@@ -4,7 +4,7 @@
 [![Packagist Version](https://img.shields.io/packagist/v/finnwiel/shazzoo-media.svg)](https://packagist.org/packages/finnwiel/shazzoo-media)
 ![Laravel](https://img.shields.io/badge/laravel-11--13.x-red)
 ![Filament](https://img.shields.io/badge/filament-4.x-yellow)
-![PHP](https://img.shields.io/badge/php-^8.3-blue)
+![PHP](https://img.shields.io/badge/php-^8.2-blue)
 
 A Laravel + Filament plugin that extends [Filament Curator](https://github.com/awcodes/filament-curator) with custom media conversion logic and a customized media model.
 

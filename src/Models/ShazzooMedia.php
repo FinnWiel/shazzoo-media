@@ -12,6 +12,28 @@ class ShazzooMedia extends CuratorMedia
 {
     protected $table = 'media';
 
+    protected $fillable = [
+        'disk',
+        'directory',
+        'visibility',
+        'name',
+        'path',
+        'width',
+        'height',
+        'size',
+        'type',
+        'ext',
+        'alt',
+        'title',
+        'description',
+        'caption',
+        'exif',
+        'curations',
+        'conversions',
+        'file_hash',
+        'file',
+    ];
+
     protected $casts = [
         'width' => 'integer',
         'height' => 'integer',

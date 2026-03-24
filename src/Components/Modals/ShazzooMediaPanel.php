@@ -21,7 +21,6 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
-use Livewire\Attributes\On;
 use Livewire\WithPagination;
 
 class ShazzooMediaPanel extends BaseCuratorPanel
@@ -51,45 +50,6 @@ class ShazzooMediaPanel extends BaseCuratorPanel
         if (blank($this->directory)) {
             $this->directory = config('shazzoo_media.directory', 'media');
         }
-    }
-
-    /**
-     * @var string[]
-     */
-    #[On('open-modal')]
-    public function openModal(string $id, array $settings = []): void
-    {
-        if ($id !== 'curator-panel') {
-            return;
-        }
-
-        // Only include what you actually use
-        $this->keepOriginalSize = $settings['keepOriginalSize'] ?? false;
-        $this->acceptedFileTypes = $settings['acceptedFileTypes'] ?? [];
-        $this->defaultSort = $settings['defaultSort'] ?? 'desc';
-        $this->directory = $settings['directory'] ?? 'media';
-        $this->diskName = $settings['diskName'] ?? 'public';
-        $this->imageCropAspectRatio = $settings['imageCropAspectRatio'] ?? null;
-        $this->imageResizeMode = $settings['imageResizeMode'] ?? null;
-        $this->imageResizeTargetWidth = $settings['imageResizeTargetWidth'] ?? null;
-        $this->imageResizeTargetHeight = $settings['imageResizeTargetHeight'] ?? null;
-        $this->isLimitedToDirectory = $settings['isLimitedToDirectory'] ?? false;
-        $this->isMultiple = $settings['isMultiple'] ?? false;
-        $this->isTenantAware = $settings['isTenantAware'] ?? true;
-        $this->tenantOwnershipRelationshipName = $settings['tenantOwnershipRelationshipName'] ?? null;
-        $this->maxItems = $settings['maxItems'] ?? null;
-        $this->maxSize = $settings['maxSize'] ?? null;
-        $this->maxWidth = $settings['maxWidth'] ?? null;
-        $this->minSize = $settings['minSize'] ?? null;
-        $this->pathGenerator = $settings['pathGenerator'] ?? null;
-        $this->validationRules = $settings['rules'] ?? [];
-        $this->selected = (array) ($settings['selected'] ?? []);
-        $this->shouldPreserveFilenames = $settings['shouldPreserveFilenames'] ?? false;
-        $this->statePath = $settings['statePath'] ?? null;
-        $this->types = $settings['types'] ?? [];
-        $this->visibility = $settings['visibility'] ?? 'public';
-
-        $this->setMediaForm();
     }
 
     /**

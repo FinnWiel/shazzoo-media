@@ -25,6 +25,7 @@ return [
     |--------------------------------------------------------------------------
     */
     'model' => \FinnWiel\ShazzooMedia\Models\ShazzooMedia::class, // Model to use for media
+    'blocked_models_for_picker' => [], // Models that should not be available in the media picker
     'pagination' => 25,
 
     /*

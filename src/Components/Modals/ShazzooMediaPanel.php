@@ -433,9 +433,29 @@ class ShazzooMediaPanel extends BaseCuratorPanel
     public function getPaginatedFiles()
     {
         $modelClass = config('shazzoo_media.model', ShazzooMedia::class);
+        $blockedModelTypes = collect(config('shazzoo_media.blocked_models_for_picker', []))
+            ->filter()
+            ->map(fn ($model) => ltrim($model, '\\'))
+            ->flatMap(function (string $model) {
+                if (str_contains($model, '\\')) {
+                    return [$model];
+                }
+
+                $appNamespace = trim(app()->getNamespace(), '\\');
+
+                return [$model, $appNamespace.'\\Models\\'.$model];
+            })
+            ->unique()
+            ->values()
+            ->all();
 
         return $modelClass::query()
-            ->whereNull('model_type')
+            ->when(! empty($blockedModelTypes), function ($query) use ($blockedModelTypes) {
+                $query->where(function ($subQuery) use ($blockedModelTypes) {
+                    $subQuery->whereNull('model_type')
+                        ->orWhereNotIn('model_type', $blockedModelTypes);
+                });
+            })
             ->when($this->search, fn ($query) => $query->where('name', 'like', '%'.$this->search.'%'))
             ->when(! empty($this->types), fn ($query) => $query->whereIn('type', $this->types))
             ->orderBy('created_at', 'desc')

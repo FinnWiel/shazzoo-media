@@ -76,6 +76,7 @@
                                         <x-filament-actions::group :actions="[
                                             $getAction('view')(['url' => $item['url']]),
                                             $getAction('edit')(['id' => $item['id']]),
+                                            $getAction('change'),
                                             $getAction('download')(['uuid' => $uuid]),
                                             $getAction('remove')(['uuid' => $uuid]),
                                         ]" color="gray" size="xs"
@@ -120,6 +121,7 @@
                                         <x-filament-actions::group :actions="[
                                             $getAction('view')(['url' => $item['url']]),
                                             $getAction('edit')(['id' => $item['id']]),
+                                            $getAction('change'),
                                             $getAction('download')(['uuid' => $uuid]),
                                             $getAction('remove')(['uuid' => $uuid]),
                                         ]" color="gray" size="xs"

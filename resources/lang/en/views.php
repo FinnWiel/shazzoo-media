@@ -6,6 +6,7 @@ return [
     ],
     'picker' => [
         'select' => 'Select Image',
+        'change' => 'Change',
     ],
     'panel' => [
         'buttons' => [

@@ -6,6 +6,7 @@ return [
     ],
     'picker' => [
         'select' => 'Afbeelding selecteren',
+        'change' => 'Wijzigen',
     ],
     'panel' => [
         'buttons' => [

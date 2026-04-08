@@ -19,6 +19,7 @@ class ShazzooMediaPicker extends CuratorPicker
         $this->registerActions([
             fn(CuratorPicker $component): Action => $component->getDownloadAction(),
             fn(CuratorPicker $component): Action => $this->getEditAction(),
+            fn(CuratorPicker $component): Action => $this->getChangeAction(),
             fn(CuratorPicker $component): Action => $component->getRemoveAction(),
             fn(CuratorPicker $component): Action => $component->getRemoveAllAction(),
             fn(CuratorPicker $component): Action => $component->getReorderAction(),
@@ -62,6 +63,45 @@ class ShazzooMediaPicker extends CuratorPicker
                     'pathGenerator' => $component->getPathGenerator(),
                     'rules' => $component->getValidationRules(),
                     'selected' => $selectedItem ? [0 => $selectedItem] : [],
+                    'shouldPreserveFilenames' => $component->shouldPreserveFilenames(),
+                    'statePath' => $component->getStatePath(),
+                    'types' => $component->getAcceptedFileTypes(),
+                    'visibility' => $component->getVisibility(),
+                    'keepOriginalSize' => $this->shouldKeepOriginalSize(),
+                ]);
+            });
+    }
+
+    public function getChangeAction(): Action
+    {
+        return Action::make('change')
+            ->label(trans('shazzoo_media::views.picker.change'))
+            ->icon('heroicon-s-arrow-path')
+            ->color('gray')
+            ->visible(function (CuratorPicker $component) {
+                return true;
+            })
+            ->action(function (CuratorPicker $component, \Livewire\Component $livewire) {
+                $livewire->dispatch('open-modal', id: 'curator-panel', settings: [
+                    'acceptedFileTypes' => $component->getAcceptedFileTypes(),
+                    'defaultSort' => $component->getDefaultPanelSort(),
+                    'directory' => $component->getDirectory(),
+                    'diskName' => $component->getDiskName(),
+                    'imageCropAspectRatio' => $component->getImageCropAspectRatio(),
+                    'imageResizeMode' => $component->getImageResizeMode(),
+                    'imageResizeTargetWidth' => $component->getImageResizeTargetWidth(),
+                    'imageResizeTargetHeight' => $component->getImageResizeTargetHeight(),
+                    'isLimitedToDirectory' => $component->isLimitedToDirectory(),
+                    'isTenantAware' => $component->isTenantAware(),
+                    'tenantOwnershipRelationshipName' => $component->tenantOwnershipRelationshipName(),
+                    'isMultiple' => $component->isMultiple(),
+                    'maxItems' => $component->getMaxItems(),
+                    'maxSize' => $component->getMaxSize(),
+                    'maxWidth' => $component->getMaxWidth(),
+                    'minSize' => $component->getMinSize(),
+                    'pathGenerator' => $component->getPathGenerator(),
+                    'rules' => $component->getValidationRules(),
+                    'selected' => [],
                     'shouldPreserveFilenames' => $component->shouldPreserveFilenames(),
                     'statePath' => $component->getStatePath(),
                     'types' => $component->getAcceptedFileTypes(),

@@ -5,8 +5,10 @@ namespace FinnWiel\ShazzooMedia\Observers;
 use Awcodes\Curator\Facades\Glide;
 use FinnWiel\ShazzooMedia\Exceptions\DuplicateMediaException;
 use FinnWiel\ShazzooMedia\Models\ShazzooMedia;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use stdClass;
+use Throwable;
 
 class ShazzooMediaObserver
 {
@@ -79,7 +81,11 @@ class ShazzooMediaObserver
 
             $media->path = $newPath;
             $media->directory = "media/{$media->id}";
-            $media->save();
+
+            // Quietly: the "created" event fires before Eloquent syncs the original
+            // attributes, so every attribute still reads as dirty here. A normal
+            // save() would re-enter updating() and trip the rename branch below.
+            $media->saveQuietly();
         }
     }
 
@@ -111,36 +117,34 @@ class ShazzooMediaObserver
             $server->deleteCache($media->path);
         }
 
-        if ($media->isDirty(['name']) && ! blank($media->name)) {
+        $oldName = $media->getOriginal('name');
+
+        // $oldName is null while the record is being created: the "created" event
+        // fires before syncOriginal(), so name reads as dirty for a brand new row.
+        if ($media->isDirty(['name']) && ! blank($media->name) && ! is_null($oldName)) {
+            $disk = Storage::disk($media->disk);
             $newFilePath = $media->directory.'/'.$media->name.'.'.$media->ext;
 
-            if (Storage::disk($media->disk)->exists($newFilePath)) {
-                $media->name .= '-'.time();
-            }
-
-            Storage::disk($media->disk)->move($media->path, $newFilePath);
-            $media->path = $newFilePath;
-
-            $oldName = $media->getOriginal('name');
-            $newName = $media->name;
-
-            $conversionBaseDir = 'conversions/'.$oldName;
-            $newConversionBaseDir = 'conversions/'.$newName;
-
-            $disk = Storage::disk($media->disk);
-
-            if ($disk->exists($conversionBaseDir)) {
-                $disk->makeDirectory($newConversionBaseDir);
-                foreach ($disk->files($conversionBaseDir) as $filePath) {
-                    $filename = basename($filePath);
-                    $newFilename = str_replace($oldName, $newName, $filename);
-
-                    $disk->move(
-                        $filePath,
-                        $newConversionBaseDir.'/'.$newFilename
-                    );
+            if ($newFilePath !== $media->path) {
+                if ($disk->exists($newFilePath)) {
+                    $media->name .= '-'.time();
+                    $newFilePath = $media->directory.'/'.$media->name.'.'.$media->ext;
                 }
-                $disk->deleteDirectory($conversionBaseDir);
+
+                if ($this->moveFile($media->disk, $media->path, $newFilePath)) {
+                    $media->path = $newFilePath;
+
+                    $this->moveConversions($disk, $oldName, $media->name);
+                } else {
+                    // Leave path pointing at the file that is actually on disk,
+                    // otherwise the record renders a URL that 404s.
+                    Log::warning('ShazzooMedia: failed to rename media file, keeping the existing path.', [
+                        'media_id' => $media->id,
+                        'disk' => $media->disk,
+                        'from' => $media->path,
+                        'to' => $newFilePath,
+                    ]);
+                }
             }
         }
 
@@ -172,6 +176,56 @@ class ShazzooMediaObserver
                 $disk->deleteDirectory($directory);
             }
         }
+    }
+
+    /**
+     * Move a file on the given disk, reporting whether it actually moved.
+     *
+     * Storage::move() returns false rather than throwing on disks configured with
+     * throw => false (the default for the "public" disk), so the result has to be
+     * checked before the new path is written back to the record.
+     */
+    private function moveFile(string $disk, string $from, string $to): bool
+    {
+        try {
+            return Storage::disk($disk)->move($from, $to);
+        } catch (Throwable $e) {
+            Log::warning('ShazzooMedia: exception while moving media file.', [
+                'disk' => $disk,
+                'from' => $from,
+                'to' => $to,
+                'exception' => $e->getMessage(),
+            ]);
+
+            return false;
+        }
+    }
+
+    /**
+     * Move the conversions that belong to a renamed media item.
+     */
+    private function moveConversions($disk, string $oldName, string $newName): void
+    {
+        $conversionBaseDir = 'conversions/'.$oldName;
+        $newConversionBaseDir = 'conversions/'.$newName;
+
+        if (! $disk->exists($conversionBaseDir)) {
+            return;
+        }
+
+        $disk->makeDirectory($newConversionBaseDir);
+
+        foreach ($disk->files($conversionBaseDir) as $filePath) {
+            $filename = basename($filePath);
+            $newFilename = str_replace($oldName, $newName, $filename);
+
+            $disk->move(
+                $filePath,
+                $newConversionBaseDir.'/'.$newFilename
+            );
+        }
+
+        $disk->deleteDirectory($conversionBaseDir);
     }
 
     /**

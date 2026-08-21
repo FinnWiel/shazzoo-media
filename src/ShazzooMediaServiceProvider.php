@@ -16,6 +16,7 @@ use FinnWiel\ShazzooMedia\Commands\ClearMediaConversions;
 use FinnWiel\ShazzooMedia\Commands\GenerateConversionImages;
 use FinnWiel\ShazzooMedia\Commands\ListConversionDefinitions;
 use FinnWiel\ShazzooMedia\Commands\RegenerateConversionImages;
+use FinnWiel\ShazzooMedia\Commands\RepairMediaPaths;
 use FinnWiel\ShazzooMedia\Commands\SetConversionDatabaseRecords;
 use FinnWiel\ShazzooMedia\Components\Modals\ShazzooMediaPanel;
 use FinnWiel\ShazzooMedia\Models\ShazzooMedia;
@@ -52,6 +53,7 @@ class ShazzooMediaServiceProvider extends PackageServiceProvider
                 GenerateConversionImages::class,
                 ListConversionDefinitions::class,
                 RegenerateConversionImages::class,
+                RepairMediaPaths::class,
                 SetConversionDatabaseRecords::class,
             ])
             ->hasInstallCommand(function (InstallCommand $command) {

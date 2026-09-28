@@ -46,7 +46,15 @@ class ShazzooMediaUploader extends Uploader
 
     protected function resizeImage(string $sourcePath): void
     {
-        [$width, $height, $imageType] = getimagesize($sourcePath);
+        // Not an image (a PDF, a document): getimagesize() returns false and
+        // there is nothing to resize.
+        $size = getimagesize($sourcePath);
+
+        if ($size === false) {
+            return;
+        }
+
+        [$width, $height, $imageType] = $size;
 
         if (!$width || !$height) {
             return;
@@ -108,8 +116,5 @@ class ShazzooMediaUploader extends Uploader
                 imagewebp($dstImage, $sourcePath, 90);
                 break;
         }
-
-        imagedestroy($srcImage);
-        imagedestroy($dstImage);
     }
 }

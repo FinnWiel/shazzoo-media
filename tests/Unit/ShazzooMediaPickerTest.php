@@ -20,6 +20,15 @@ class ShazzooMediaPickerTest extends TestCase
         ], $picker->getAcceptedFileTypes());
     }
 
+    public function test_conversions_are_registered_once_when_the_form_is_built_again(): void
+    {
+        // Filament builds the form on load and again on save.
+        ShazzooMediaPicker::make('portrait_id')->conversions(['profile', 'thumbnail']);
+        ShazzooMediaPicker::make('portrait_id')->conversions(['profile', 'thumbnail', 'medium']);
+
+        $this->assertSame(['profile', 'thumbnail', 'medium'], ShazzooMediaPicker::getConversionsFor('portrait_id'));
+    }
+
     public function test_file_type_all_clears_the_accepted_mime_type_filter(): void
     {
         $picker = ShazzooMediaPicker::make('featured_image_id')

@@ -134,14 +134,12 @@ class ShazzooMediaPicker extends CuratorPicker
      */
     public function conversions(array $data): static
     {
-        if (isset(static::$conversionRegistry[$this->getName()])) {
-            static::$conversionRegistry[$this->getName()] = array_merge(
-                static::$conversionRegistry[$this->getName()],
-                $data
-            );
-        } else {
-            static::$conversionRegistry[$this->getName()] = $data;
-        }
+        // Filament builds a form more than once per request (on load and on
+        // save), so the same conversions arrive again; keep each one once.
+        static::$conversionRegistry[$this->getName()] = array_values(array_unique([
+            ...static::$conversionRegistry[$this->getName()] ?? [],
+            ...$data,
+        ]));
 
         return $this;
     }

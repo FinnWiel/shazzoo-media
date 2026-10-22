@@ -6,6 +6,8 @@ use Awcodes\Curator\Glide\SymfonyResponseFactory;
 use Illuminate\Support\Facades\Log;
 use League\Flysystem\Filesystem;
 use League\Flysystem\Local\LocalFilesystemAdapter;
+use League\Flysystem\UnixVisibility\PortableVisibilityConverter;
+use League\Flysystem\Visibility;
 use League\Glide\Server;
 use League\Glide\ServerFactory as GlideServerFactory;
 
@@ -13,8 +15,13 @@ class ShazzooMediaServerFactory
 {
     public function getFactory(): GlideServerFactory|Server
     {
+        // Flysystem creates new directories as private (0700) unless told
+        // otherwise, so the web server could not read the conversions folder.
         $filesystem = new Filesystem(
-            new LocalFilesystemAdapter(storage_path('app'))
+            new LocalFilesystemAdapter(
+                storage_path('app'),
+                PortableVisibilityConverter::fromArray([], Visibility::PUBLIC),
+            )
         );
 
         $server = GlideServerFactory::create([

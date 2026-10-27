@@ -12,6 +12,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Str;
+use Stringable;
 
 class ShazzooMediaPicker extends CuratorPicker
 {
@@ -82,7 +83,7 @@ class ShazzooMediaPicker extends CuratorPicker
                         'maxWidth' => $component->getMaxWidth(),
                         'minSize' => $component->getMinSize(),
                         'pathGenerator' => $component->getPathGenerator(),
-                        'rules' => $component->getValidationRules(),
+                        'rules' => $component->getPanelValidationRules(),
                         'selected' => $selected,
                         'shouldPreserveFilenames' => $component->shouldPreserveFilenames(),
                         'statePath' => $component->getStatePath(),
@@ -291,6 +292,22 @@ class ShazzooMediaPicker extends CuratorPicker
     }
 
     /**
+     * The validation rules the media panel can receive. The panel is a
+     * Livewire component, so closure and object rules cannot be passed to
+     * it; Curator itself adds a closure rule since v5.6.
+     *
+     * @return array<int, string>
+     */
+    public function getPanelValidationRules(): array
+    {
+        return collect($this->getValidationRules())
+            ->map(fn (mixed $rule): mixed => $rule instanceof Stringable ? (string) $rule : $rule)
+            ->filter(fn (mixed $rule): bool => is_string($rule))
+            ->values()
+            ->all();
+    }
+
+    /**
      * Get the action to open the Curator picker.
      */
     public function getPickerAction(): Action
@@ -329,7 +346,7 @@ class ShazzooMediaPicker extends CuratorPicker
                         'maxWidth' => $component->getMaxWidth(),
                         'minSize' => $component->getMinSize(),
                         'pathGenerator' => $component->getPathGenerator(),
-                        'rules' => $component->getValidationRules(),
+                        'rules' => $component->getPanelValidationRules(),
                         'selected' => (array) $component->getState(),
                         'shouldPreserveFilenames' => $component->shouldPreserveFilenames(),
                         'statePath' => $component->getStatePath(),

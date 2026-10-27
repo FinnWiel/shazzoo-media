@@ -37,6 +37,15 @@ class ShazzooMediaPickerTest extends TestCase
         $this->assertSame([], $picker->getAcceptedFileTypes());
     }
 
+    public function test_the_panel_only_receives_rules_livewire_can_pass_on(): void
+    {
+        $picker = ShazzooMediaPicker::make('featured_image_id')
+            ->required()
+            ->rule(fn (): \Closure => function (string $attribute, mixed $value, \Closure $fail): void {});
+
+        $this->assertSame(['required'], $picker->getPanelValidationRules());
+    }
+
     public function test_picker_action_uses_curator_v5_launch_panel_action_name(): void
     {
         $picker = ShazzooMediaPicker::make('featured_image_id');

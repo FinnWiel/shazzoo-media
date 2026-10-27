@@ -37,6 +37,12 @@ class ShazzooMediaPanel extends BaseCuratorPanel
 
     public bool $keepOriginalSize = false;
 
+    /**
+     * Curator 5.6 dropped this property from its panel, but the picker still
+     * passes it and the upload form below still uses it.
+     */
+    public ?int $maxWidth = null;
+
     public function mount(): void
     {
         if (($this->settings['directory'] ?? null) === null) {
